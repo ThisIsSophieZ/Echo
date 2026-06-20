@@ -1,0 +1,88 @@
+import type { Echo } from "~db/echoes"
+import { Bot, Link, Pin, Sparkles, Trash2 } from "lucide-react"
+
+type EchoCardProps = {
+  echo: Echo
+  onDelete?: (id: string) => void
+}
+
+const relativeTime = (date: string) => {
+  const delta = Date.now() - new Date(date).getTime()
+  const minutes = Math.max(1, Math.floor(delta / 60000))
+
+  if (minutes < 60) return `${minutes}m ago`
+
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours}h ago`
+
+  const days = Math.floor(hours / 24)
+  return `${days}d ago`
+}
+
+const sourceLabel = (source?: string) => {
+  if (!source) return "Browser"
+
+  return source.charAt(0).toUpperCase() + source.slice(1)
+}
+
+const iconForSource = (source?: string) => {
+  if (source === "gemini") return Sparkles
+  return Bot
+}
+
+export const EchoCard = ({ echo, onDelete }: EchoCardProps) => {
+  const SourceIcon = iconForSource(echo.sourceApp)
+  const isPinned = echo.status === "pinned"
+  const displayText = echo.userThought || echo.inferredThought || echo.triggerText
+
+  return (
+    <article className="echo-card group relative flex cursor-pointer items-start gap-3 rounded-lg border border-[#E3E3E3] bg-white p-3 transition-colors hover:bg-[#F1F3F4]">
+      <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
+        echo.sourceApp === "gemini"
+          ? "bg-tertiary-fixed text-[#341100]"
+          : echo.sourceApp === "browser"
+            ? "bg-secondary-fixed text-on-secondary-fixed"
+            : "bg-primary-fixed text-on-primary-fixed"
+      }`}>
+        <SourceIcon size={18} strokeWidth={1.8} />
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <p className="whitespace-pre-wrap break-words text-body-md leading-snug text-on-surface">
+          {displayText}
+        </p>
+
+        {echo.userThought && echo.triggerText && echo.userThought !== echo.triggerText ? (
+          <span className="mt-1 flex items-center gap-1 truncate text-label-sm text-primary">
+            <Link size={12} />
+            Source: {echo.triggerText}
+          </span>
+        ) : null}
+
+        <div className="mt-1 flex items-center gap-2 text-on-surface-variant">
+          <span className="text-label-md">{sourceLabel(echo.sourceApp)}</span>
+          <span className="h-1 w-1 rounded-full bg-outline-variant" />
+          <time className="text-label-md">{relativeTime(echo.createdAt)}</time>
+        </div>
+      </div>
+
+      <div className="action-reveal flex self-center opacity-0 transition-opacity">
+        {isPinned ? (
+          <Pin size={18} className="fill-primary text-primary" />
+        ) : (
+          <button
+            aria-label="Delete echo"
+            className="rounded-full p-1 text-outline hover:bg-error-container hover:text-error"
+            onClick={(event) => {
+              event.preventDefault()
+              event.stopPropagation()
+              onDelete?.(echo.id)
+            }}
+            type="button">
+            <Trash2 size={16} />
+          </button>
+        )}
+      </div>
+    </article>
+  )
+}
