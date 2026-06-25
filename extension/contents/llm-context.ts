@@ -64,6 +64,7 @@ const ensureAddButton = () => {
     const quote = lastSelection.trim()
     if (!quote) return
 
+    const rect = getSelectionRect()
     addButton!.textContent = "Adding..."
 
     const response = await chrome.runtime.sendMessage({
@@ -73,8 +74,14 @@ const ensureAddButton = () => {
       url: location.href
     })
 
-    addButton!.textContent = response?.ok ? "Added" : "Try again"
-    setTimeout(hideAddButton, 900)
+    if (response?.ok) {
+      hideAddButton()
+      flashSaved(rect)
+      return
+    }
+
+    addButton!.textContent = "Try again"
+    setTimeout(hideAddButton, 1200)
   })
 
   document.body.appendChild(addButton)
@@ -97,14 +104,70 @@ const hideAddButton = () => {
   if (addButton) addButton.style.display = "none"
 }
 
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  if (message?.type !== "echo:get-page-context") return
+// Quick, non-intrusive "saved" confirmation near the selection. No side panel
+// is opened on capture; this little flash is the whole feedback.
+const flashSaved = (rect: DOMRect | null) => {
+  const pill = document.createElement("div")
+  pill.textContent = "Saved to Echo"
 
-  sendResponse({
-    title: document.title,
-    url: location.href,
-    selection: window.getSelection()?.toString().trim() ?? ""
-  })
+  const star = document.createElement("span")
+  star.textContent = "\u2b50"
+  star.style.fontSize = "14px"
+  pill.prepend(star)
+
+  pill.style.cssText = [
+    "position:fixed",
+    "z-index:2147483647",
+    "display:flex",
+    "align-items:center",
+    "gap:6px",
+    "padding:4px 10px 4px 8px",
+    "border-radius:999px",
+    "background:rgba(26,115,232,0.96)",
+    "color:#ffffff",
+    "font:600 12px Inter,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",
+    "box-shadow:0 6px 18px rgba(25,28,35,0.28)",
+    "pointer-events:none",
+    "user-select:none",
+    "white-space:nowrap"
+  ].join(";")
+
+  const top = rect ? Math.max(8, rect.top - 12) : 72
+  const left = rect
+    ? Math.min(window.innerWidth - 132, rect.right + 8)
+    : window.innerWidth / 2 - 60
+  pill.style.top = `${top}px`
+  pill.style.left = `${left}px`
+
+  document.body.appendChild(pill)
+
+  const animation = pill.animate(
+    [
+      { transform: "translateY(0) scale(0.6)", opacity: 0 },
+      { transform: "translateY(-8px) scale(1.05)", opacity: 1, offset: 0.25 },
+      { transform: "translateY(-12px) scale(1)", opacity: 1, offset: 0.7 },
+      { transform: "translateY(-28px) scale(0.95)", opacity: 0 }
+    ],
+    { duration: 1300, easing: "ease-out" }
+  )
+  animation.onfinish = () => pill.remove()
+}
+
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (message?.type === "echo:get-page-context") {
+    sendResponse({
+      title: document.title,
+      url: location.href,
+      selection: window.getSelection()?.toString().trim() ?? ""
+    })
+    return
+  }
+
+  // Triggered by the background context-menu path after a successful save.
+  if (message?.type === "echo:show-star") {
+    flashSaved(getSelectionRect())
+    return
+  }
 })
 
 document.addEventListener("mouseup", () => {

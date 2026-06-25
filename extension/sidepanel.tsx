@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react"
 import { History, Home, Lightbulb, Plus, Search, Settings, Zap } from "lucide-react"
 
 import { EchoCard } from "~components/EchoCard"
-import { createEcho, deleteEcho, listRecentEchoes, type Echo } from "~db/echoes"
+import { createEcho, deleteEcho, listRecentEchoes, togglePin, type Echo } from "~db/echoes"
 import { ECHO_LIST_CHANGED_KEY, notifyEchoListChanged } from "~lib/echo-events"
 import { detectSourceApp } from "~lib/source-app"
 
@@ -109,6 +109,12 @@ const SidePanel = () => {
     await notifyEchoListChanged()
   }
 
+  const handleTogglePin = async (id: string) => {
+    await togglePin(id)
+    await refreshEchoes()
+    await notifyEchoListChanged()
+  }
+
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-surface text-on-surface">
       <header className="sticky top-0 z-50 flex h-[48px] w-full items-center justify-between border-b border-outline-variant bg-surface px-margin-side">
@@ -191,7 +197,12 @@ const SidePanel = () => {
         <div className="space-y-stack-sm">
           {visibleEchoes.length ? (
             visibleEchoes.map((echo) => (
-              <EchoCard key={echo.id} echo={echo} onDelete={handleDeleteEcho} />
+              <EchoCard
+                key={echo.id}
+                echo={echo}
+                onDelete={handleDeleteEcho}
+                onTogglePin={handleTogglePin}
+              />
             ))
           ) : (
             <div className="rounded-lg border border-dashed border-outline-variant bg-white px-4 py-8 text-center text-body-md text-on-surface-variant">

@@ -53,7 +53,12 @@ export const listRecentEchoes = async () => {
     .map((record) => normalizeEcho(record))
     .filter((record) => ["raw", "inferred", "confirmed", "pinned"].includes(record.status))
 
-  return echoes.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  return echoes.sort((a, b) => {
+    const aPinned = a.status === "pinned" ? 1 : 0
+    const bPinned = b.status === "pinned" ? 1 : 0
+    if (aPinned !== bPinned) return bPinned - aPinned
+    return b.createdAt.localeCompare(a.createdAt)
+  })
 }
 
 export type CreateEchoInput = {
@@ -85,6 +90,24 @@ export const createEcho = async (echo: CreateEchoInput) => {
 
 export const deleteEcho = async (id: string) => {
   await db.sparks.delete(id)
+}
+
+export const setEchoStatus = async (id: string, status: EchoStatus) => {
+  await db.sparks.update(id, { status })
+}
+
+// Toggle pin. Unpinning restores a sensible status: keep it a thought-bearing
+// "confirmed" echo if the user wrote something, otherwise back to "raw".
+export const togglePin = async (id: string) => {
+  const record = await db.sparks.get(id)
+  if (!record) return
+
+  const current = normalizeEcho(record)
+  const next: EchoStatus =
+    current.status === "pinned" ? (current.userThought ? "confirmed" : "raw") : "pinned"
+
+  await db.sparks.update(id, { status: next })
+  return next
 }
 
 const normalizeStatus = (status?: LegacyEcho["status"]): EchoStatus => {

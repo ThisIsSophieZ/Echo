@@ -4,6 +4,7 @@ import { Bot, Link, Pin, Sparkles, Trash2 } from "lucide-react"
 type EchoCardProps = {
   echo: Echo
   onDelete?: (id: string) => void
+  onTogglePin?: (id: string) => void
 }
 
 const relativeTime = (date: string) => {
@@ -30,13 +31,16 @@ const iconForSource = (source?: string) => {
   return Bot
 }
 
-export const EchoCard = ({ echo, onDelete }: EchoCardProps) => {
+export const EchoCard = ({ echo, onDelete, onTogglePin }: EchoCardProps) => {
   const SourceIcon = iconForSource(echo.sourceApp)
   const isPinned = echo.status === "pinned"
   const displayText = echo.userThought || echo.inferredThought || echo.triggerText
 
   return (
-    <article className="echo-card group relative flex cursor-pointer items-start gap-3 rounded-lg border border-[#E3E3E3] bg-white p-3 transition-colors hover:bg-[#F1F3F4]">
+    <article
+      className={`echo-card group relative flex cursor-pointer items-start gap-3 rounded-lg border bg-white p-3 transition-colors hover:bg-[#F1F3F4] ${
+        isPinned ? "border-primary/50 bg-primary-fixed/10" : "border-[#E3E3E3]"
+      }`}>
       <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
         echo.sourceApp === "gemini"
           ? "bg-tertiary-fixed text-[#341100]"
@@ -66,22 +70,36 @@ export const EchoCard = ({ echo, onDelete }: EchoCardProps) => {
         </div>
       </div>
 
-      <div className="action-reveal flex self-center opacity-0 transition-opacity">
-        {isPinned ? (
-          <Pin size={18} className="fill-primary text-primary" />
-        ) : (
-          <button
-            aria-label="Delete echo"
-            className="rounded-full p-1 text-outline hover:bg-error-container hover:text-error"
-            onClick={(event) => {
-              event.preventDefault()
-              event.stopPropagation()
-              onDelete?.(echo.id)
-            }}
-            type="button">
-            <Trash2 size={16} />
-          </button>
-        )}
+      <div
+        className={`action-reveal flex items-center gap-1 self-center transition-opacity ${
+          isPinned ? "opacity-100" : "opacity-0"
+        }`}>
+        <button
+          aria-label={isPinned ? "Unpin echo" : "Pin echo"}
+          className={`rounded-full p-1 transition-colors ${
+            isPinned
+              ? "text-primary hover:bg-primary-container"
+              : "text-outline hover:bg-secondary-container hover:text-primary"
+          }`}
+          onClick={(event) => {
+            event.preventDefault()
+            event.stopPropagation()
+            onTogglePin?.(echo.id)
+          }}
+          type="button">
+          <Pin size={16} className={isPinned ? "fill-primary" : ""} />
+        </button>
+        <button
+          aria-label="Delete echo"
+          className="rounded-full p-1 text-outline hover:bg-error-container hover:text-error"
+          onClick={(event) => {
+            event.preventDefault()
+            event.stopPropagation()
+            onDelete?.(echo.id)
+          }}
+          type="button">
+          <Trash2 size={16} />
+        </button>
       </div>
     </article>
   )

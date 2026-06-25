@@ -6,15 +6,12 @@ import { detectSourceApp } from "~lib/source-app"
 
 const ADD_SELECTION_MENU_ID = "echo_add_selection"
 
-const openSidePanel = async (tab?: chrome.tabs.Tab) => {
-  if (tab?.id) {
-    await chrome.sidePanel.open({ tabId: tab.id })
-    return
-  }
-
-  if (tab?.windowId) {
-    await chrome.sidePanel.open({ windowId: tab.windowId })
-  }
+// Ask the in-page content script to flash a quick "saved" confirmation near the
+// selection. Fails silently on pages without the content script (e.g. non-LLM
+// pages), where the echo is still saved without the visual cue.
+const flashSavedOnTab = (tabId?: number) => {
+  if (tabId == null) return
+  chrome.tabs.sendMessage(tabId, { type: "echo:show-star" }).catch(() => {})
 }
 
 const rebuildContextMenu = async () => {
@@ -58,7 +55,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (!quote) return
 
   addSelectionAsEcho(quote, tab, info.pageUrl)
-    .then(() => openSidePanel(tab))
+    .then(() => flashSavedOnTab(tab?.id))
     .catch((error) => console.error("Failed to add selection to Echo", error))
 })
 
@@ -78,7 +75,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     title: message.title ?? tab?.title,
     url: message.url ?? tab?.url
   } as chrome.tabs.Tab)
-    .then(() => openSidePanel(tab))
     .then(() => sendResponse({ ok: true }))
     .catch((error) => sendResponse({ ok: false, error: String(error?.message ?? error) }))
 
