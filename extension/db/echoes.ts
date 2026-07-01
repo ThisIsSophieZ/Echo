@@ -97,6 +97,18 @@ export const deleteEcho = async (id: string) => {
   await db.sparks.delete(id)
 }
 
+export const addUserThought = async (id: string, userThought: string) => {
+  const thought = userThought.trim()
+  if (!thought) return false
+
+  const updated = await db.sparks.update(id, {
+    userThought: thought,
+    status: "confirmed"
+  })
+
+  return updated > 0
+}
+
 // Toggle pin. Unpinning restores a sensible status: keep it a thought-bearing
 // "confirmed" echo if the user wrote something, otherwise back to "raw".
 export const togglePin = async (id: string) => {

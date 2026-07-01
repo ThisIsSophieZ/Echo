@@ -10,6 +10,17 @@ Echo Sidebar is a lightweight Chrome Side Panel for capturing and recalling thou
 - Dexie / IndexedDB
 - Chrome MV3 Side Panel API
 
+## Verification
+
+```bash
+npm test
+npx tsc --noEmit
+npm run build
+```
+
+The regression suite currently covers long Collect/Keep classification,
+structured-card metadata, and the Markdown clipboard contract.
+
 ## Capture (store)
 
 Two capture paths, two meanings:
@@ -20,6 +31,9 @@ Two capture paths, two meanings:
 | **Keep** | Side panel textarea + `Keep` | `status: confirmed`, `userThought` = typed text | Your own thought |
 
 - Collect does **not** auto-open the side panel; a `Saved to Echo` toast appears near the selection instead.
+- After Collect, the confirmation includes an optional one-line
+  `Add a thought...` field. It does not take focus, disappears when ignored,
+  and updates the same Echo when used.
 - New Collect actions preserve paragraph and list-item line breaks from supported LLM pages.
 - Structured selections also keep a Markdown representation, compact preview,
   structure metrics, and a text anchor back to the source.
@@ -51,6 +65,16 @@ The side panel is quiet by default:
 - The Keep composer appears first.
 - `All Echoes` follows immediately and is ordered strictly newest-first.
 - Collect and Keep never create a review task or require a follow-up response.
+- A skipped quick thought leaves the Echo `raw`; a saved thought stores
+  `userThought` and changes the same record to `confirmed`.
+- Adding a thought to a long Collect does not expand its source body; the
+  thought appears first while the original remains in the compact long-content
+  presentation.
+- Every Echo has a direct Copy action. Structured captures copy their stored
+  Markdown; an added thought is prepended under `## 想法`, followed by the
+  source under `## 来源片段`.
+- Copy, Pin, and Delete share a hidden top-right action group. Hovering that
+  corner reveals it without reserving space in the card content.
 
 The previous neglect-driven resurface experiment was removed after dogfooding showed
 that opening the panel felt like receiving work. Contextual recall will be tested

@@ -33,7 +33,8 @@ body {
   border-radius: 10px;
 }
 
-.echo-card:hover .action-reveal {
+.action-zone:hover .action-reveal,
+.action-zone:focus-within .action-reveal {
   opacity: 1;
 }
 

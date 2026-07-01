@@ -1,7 +1,8 @@
 import type { Echo } from "~db/echoes"
-import { Bot, Link, Pin, Sparkles, Trash2 } from "lucide-react"
+import { Bot, Link, Sparkles } from "lucide-react"
 
 import { ExpandableText } from "~components/ExpandableText"
+import { EchoCardActions } from "~components/EchoCardActions"
 import { LongEchoCard } from "~components/LongEchoCard"
 import { isLongCollect } from "~lib/echo-presentation"
 
@@ -85,43 +86,19 @@ export const EchoCard = ({
           </div>
         ) : null}
 
-        <div className="mt-1 flex items-center gap-2 text-on-surface-variant">
+        <div className="mt-2 flex items-center gap-2 text-on-surface-variant">
           <span className="text-label-md">{sourceLabel(echo.sourceApp)}</span>
           <span className="h-1 w-1 rounded-full bg-outline-variant" />
           <time className="text-label-md">{relativeTime(echo.createdAt)}</time>
         </div>
       </div>
 
-      <div
-        className={`action-reveal flex items-center gap-1 self-center transition-opacity ${
-          isPinned ? "opacity-100" : "opacity-0"
-        }`}>
-        <button
-          aria-label={isPinned ? "Unpin echo" : "Pin echo"}
-          className={`rounded-full p-1 transition-colors ${
-            isPinned
-              ? "text-primary hover:bg-primary-container"
-              : "text-outline hover:bg-secondary-container hover:text-primary"
-          }`}
-          onClick={(event) => {
-            event.preventDefault()
-            event.stopPropagation()
-            onTogglePin?.(echo.id)
-          }}
-          type="button">
-          <Pin size={16} className={isPinned ? "fill-primary" : ""} />
-        </button>
-        <button
-          aria-label="Delete echo"
-          className="rounded-full p-1 text-outline hover:bg-error-container hover:text-error"
-          onClick={(event) => {
-            event.preventDefault()
-            event.stopPropagation()
-            onDelete?.(echo.id)
-          }}
-          type="button">
-          <Trash2 size={16} />
-        </button>
+      <div className="action-zone absolute right-1 top-1 z-10 flex h-10 w-24 items-start justify-end p-1">
+        <EchoCardActions
+          echo={echo}
+          onDelete={onDelete}
+          onTogglePin={onTogglePin}
+        />
       </div>
     </article>
   )

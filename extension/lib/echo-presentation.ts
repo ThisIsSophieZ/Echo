@@ -20,7 +20,9 @@ const fallbackPreview = (text: string) => {
 }
 
 export const isLongCollect = (echo: Echo) => {
-  if (echo.userThought) return false
+  const isManualKeep =
+    Boolean(echo.userThought) && echo.triggerText.trim() === echo.userThought?.trim()
+  if (isManualKeep) return false
 
   const features = echo.capture?.features
   if (!features) {
@@ -65,4 +67,14 @@ export const longCollectPresentation = (echo: Echo) => {
     meta: `${descriptor} · ${detail} · ${source}`,
     markdown: echo.capture?.markdown || echo.triggerText
   }
+}
+
+export const echoClipboardMarkdown = (echo: Echo) => {
+  const source = echo.capture?.markdown?.trim() || echo.triggerText.trim()
+  const thought = echo.userThought?.trim()
+  const isManualKeep = Boolean(thought) && thought === echo.triggerText.trim()
+
+  if (!thought || isManualKeep) return source
+
+  return `## 想法\n\n${thought}\n\n## 来源片段\n\n${source}`
 }

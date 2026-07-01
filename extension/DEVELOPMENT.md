@@ -241,6 +241,110 @@ Verification:
 
 - `npm run build` completed successfully.
 - Plasmo's existing optional `svgo` notice remains non-blocking.
+
+### Automated Presentation Regression Tests
+
+Vitest was added as the first persistent automated regression layer for the
+capture presentation boundary.
+
+Coverage:
+
+- A long Collect remains compact after `userThought` is added.
+- A long manual Keep is not misclassified as a long Collect.
+- Structured title, preview, and table metadata survive presentation.
+- Copy uses stored structured Markdown instead of flattened text.
+- Quick thought plus source produces the agreed two-section Markdown.
+- Manual Keep is copied once without duplicate content.
+
+Commands:
+
+- `npm test`: 1 test file, 6 tests passed.
+- `npx tsc --noEmit`: passed.
+- `npm run build`: passed.
+
+Test setup note:
+
+- The first run did not execute assertions because Vitest does not inherit
+  Plasmo's `~` aliases automatically. Test imports now use relative paths;
+  production imports remain unchanged.
+- Installing Vitest reported 70 dependency audit findings (3 moderate, 67
+  high). No automatic audit fix was applied because forced dependency upgrades
+  are outside this feature's scope and may be breaking.
+- Plasmo's existing optional `svgo` notice remains non-blocking.
+
+### Compact Card Action Row
+
+The first Copy placement reduced the text column width, especially on long
+cards in the narrow side panel.
+
+Changes:
+
+- `EchoCardActions` now owns the Copy, Pin, and Delete group.
+- Normal cards place the group beside source/time metadata below the body.
+- Long cards place it at the right side of the Markdown/source command row.
+- The group wraps as one unit on narrow widths and no longer reserves space
+  inside the title or content column.
+
+Verification:
+
+- `npm run build` completed successfully.
+- Plasmo's existing optional `svgo` notice remains non-blocking.
+
+Follow-up layout correction:
+
+- The visible metadata/footer placement was too heavy in the narrow panel.
+- Both card types now use the same absolute top-right hover zone.
+- The action group is hidden unless that corner is hovered or keyboard focus
+  is inside it.
+- The hover zone reserves no content width and does not change card height.
+- Production build completed successfully after the correction.
+
+### Long Collect With A Quick Thought
+
+Regression: adding `userThought` caused a long Collect to leave
+`LongEchoCard` and render its entire source body through the normal card. The
+presentation rule had treated every record with `userThought` as a manual
+Keep.
+
+Fix:
+
+- Manual Keep remains identified by `triggerText === userThought`.
+- A Collect with a distinct source quote remains eligible for long-content
+  presentation after a thought is added.
+- `LongEchoCard` shows the user's thought first and keeps the source title,
+  preview, metadata, Markdown expansion, and original-position action below.
+
+Verification:
+
+- Production build completed successfully.
+- Regression cases checked in the presentation rule: long Collect plus a
+  distinct `userThought` stays compact; long manual Keep remains a normal card.
+
+### Copy Echo As Markdown
+
+Every Echo card now exposes Copy as a persistent high-frequency action while
+Pin and Delete retain their existing hover behavior.
+
+Clipboard contract:
+
+- Structured Collect copies the deterministic Markdown stored in
+  `capture.markdown`.
+- Plain Collect and manual Keep fall back to `triggerText`.
+- A Collect with `userThought` produces `## 想法`, then `## 来源片段` with the
+  original Markdown.
+- Manual Keep is copied once without duplicating its identical
+  `triggerText`/`userThought`.
+
+Implementation:
+
+- `echoClipboardMarkdown` is the single formatter for all card types.
+- `CopyEchoButton` owns Clipboard API access and temporary Copy/Check feedback.
+- Normal and long cards share the same component and output contract.
+
+Verification:
+
+- `npm run build` completed successfully.
+- Plasmo's existing optional `svgo` notice remains non-blocking.
 - Reproduced the stale-script failure in the user's open Gemini tab:
   `chrome.runtime` was unavailable, so the message never reached the worker.
 - Opened a fresh supported Grok page and verified selection, floating-button
@@ -395,3 +499,35 @@ Verification:
 - The saved ChatGPT title matched its changed DNA teaching-design section at
   `0.522`, above the conservative `0.48` fuzzy threshold.
 - Grok and ChatGPT still require extension reload and end-to-end user retest.
+
+### Optional Thought After Collect
+
+Collect now offers a quiet, optional one-line note immediately after saving.
+This extends the existing record instead of creating a second Echo.
+
+Behavior:
+
+- The Collect response returns the newly created `echoId`.
+- Floating-button and context-menu capture both show the same prompt.
+- The prompt is visible for eight seconds, does not auto-focus, and disappears
+  without changing the saved `raw` Echo when ignored.
+- Typing pauses expiry. Enter or Save writes `userThought` to the exact record
+  and changes its status to `confirmed`; Escape dismisses it.
+- Empty thoughts are rejected. Failed writes preserve the input and expose a
+  Retry action.
+- A second Collect does not replace an active prompt that already contains
+  unsaved text.
+
+Architecture:
+
+- `db/echoes.ts` owns the ID-based `addUserThought` update.
+- `background.ts` returns the created ID, validates thought updates, persists
+  them, and emits the existing list-change notification.
+- `contents/llm-context.ts` owns only the temporary page-level interaction.
+- No schema migration is required because `userThought` and `confirmed`
+  already exist in the Echo model.
+
+Verification:
+
+- `npm run build` completed successfully.
+- Plasmo's existing optional `svgo` notice remains non-blocking.

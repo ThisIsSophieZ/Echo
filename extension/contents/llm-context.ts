@@ -19,13 +19,18 @@ export const config: PlasmoCSConfig = {
 let addButton: HTMLButtonElement | null = null
 let lastSelectionCapture: SelectionCapture | null = null
 let buttonExpiry: Animation | null = null
+let thoughtPrompt: HTMLDivElement | null = null
+let thoughtPromptExpiry: number | null = null
 
 const ADD_BUTTON_ID = "echo-add-to-echo-button"
+const THOUGHT_PROMPT_ID = "echo-quick-thought-prompt"
 const ADD_BUTTON_LIFETIME_MS = 10_000
+const THOUGHT_PROMPT_LIFETIME_MS = 8_000
 
 // A reloaded unpacked extension can leave DOM from its invalidated content
 // script behind. Remove any previous instance when a live script starts.
 document.getElementById(ADD_BUTTON_ID)?.remove()
+document.getElementById(THOUGHT_PROMPT_ID)?.remove()
 
 const getSelectionRect = () => {
   const selection = window.getSelection()
@@ -92,7 +97,7 @@ const ensureAddButton = () => {
 
       if (response?.ok) {
         hideAddButton()
-        flashSaved(rect)
+        showThoughtPrompt(rect, response.echoId)
         return
       }
 
@@ -150,53 +155,137 @@ const hideAddButton = () => {
   }
 }
 
-// Quick, non-intrusive "saved" confirmation near the selection. No side panel
-// is opened on capture; this little flash is the whole feedback.
-const flashSaved = (rect: DOMRect | null) => {
-  const pill = document.createElement("div")
-  pill.textContent = "Saved to Echo"
+const clearThoughtPromptExpiry = () => {
+  if (thoughtPromptExpiry != null) {
+    window.clearTimeout(thoughtPromptExpiry)
+    thoughtPromptExpiry = null
+  }
+}
 
-  const star = document.createElement("span")
-  star.textContent = "\u2b50"
-  star.style.fontSize = "14px"
-  pill.prepend(star)
+const removeThoughtPrompt = () => {
+  clearThoughtPromptExpiry()
+  thoughtPrompt?.remove()
+  thoughtPrompt = null
+}
 
-  pill.style.cssText = [
+const scheduleThoughtPromptExpiry = () => {
+  clearThoughtPromptExpiry()
+  thoughtPromptExpiry = window.setTimeout(removeThoughtPrompt, THOUGHT_PROMPT_LIFETIME_MS)
+}
+
+const showThoughtPrompt = (rect: DOMRect | null, echoId?: string) => {
+  if (!echoId) return
+
+  const existingInput = thoughtPrompt?.querySelector("input")
+  if (existingInput instanceof HTMLInputElement && existingInput.value.trim()) return
+  removeThoughtPrompt()
+
+  const prompt = document.createElement("div")
+  prompt.id = THOUGHT_PROMPT_ID
+  prompt.style.cssText = [
     "position:fixed",
     "z-index:2147483647",
     "display:flex",
     "align-items:center",
-    "gap:6px",
-    "padding:4px 10px 4px 8px",
-    "border-radius:999px",
-    "background:rgba(26,115,232,0.96)",
-    "color:#ffffff",
-    "font:600 12px Inter,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",
+    "gap:8px",
+    "width:min(340px,calc(100vw - 24px))",
+    "padding:8px",
+    "border:1px solid rgba(193,198,214,0.95)",
+    "border-radius:8px",
+    "background:#ffffff",
+    "color:#191c23",
+    "font:500 12px Inter,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",
     "box-shadow:0 6px 18px rgba(25,28,35,0.28)",
-    "pointer-events:none",
-    "user-select:none",
-    "white-space:nowrap"
+    "box-sizing:border-box"
   ].join(";")
 
-  const top = rect ? Math.max(8, rect.top - 12) : 72
+  const label = document.createElement("span")
+  label.textContent = "Saved"
+  label.style.cssText = "color:#1a73e8;font-weight:700;white-space:nowrap"
+
+  const input = document.createElement("input")
+  input.type = "text"
+  input.placeholder = "Add a thought..."
+  input.setAttribute("aria-label", "Add a thought to this Echo")
+  input.style.cssText = [
+    "min-width:0",
+    "flex:1",
+    "border:0",
+    "outline:0",
+    "background:transparent",
+    "color:#191c23",
+    "font:inherit"
+  ].join(";")
+
+  const save = document.createElement("button")
+  save.type = "button"
+  save.textContent = "Save"
+  save.disabled = true
+  save.style.cssText = [
+    "border:0",
+    "background:transparent",
+    "color:#1a73e8",
+    "font-family:inherit",
+    "font-size:12px",
+    "font-weight:700",
+    "cursor:pointer",
+    "padding:3px"
+  ].join(";")
+
+  const submitThought = async () => {
+    const thought = input.value.trim()
+    if (!thought || save.disabled) return
+
+    clearThoughtPromptExpiry()
+    save.disabled = true
+    save.textContent = "Saving..."
+
+    try {
+      const response = await chrome.runtime.sendMessage({
+        type: "echo:add-user-thought",
+        echoId,
+        thought
+      })
+      if (!response?.ok) throw new Error(response?.error || "Could not save thought")
+
+      label.textContent = "Thought added"
+      input.remove()
+      save.remove()
+      window.setTimeout(removeThoughtPrompt, 900)
+    } catch {
+      save.textContent = "Retry"
+      save.disabled = false
+      input.focus()
+    }
+  }
+
+  input.addEventListener("input", () => {
+    save.disabled = !input.value.trim()
+  })
+  input.addEventListener("focus", clearThoughtPromptExpiry)
+  input.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault()
+      void submitThought()
+    } else if (event.key === "Escape") {
+      event.preventDefault()
+      removeThoughtPrompt()
+    }
+  })
+  save.addEventListener("click", () => void submitThought())
+  prompt.addEventListener("mousedown", (event) => event.stopPropagation())
+  prompt.append(label, input, save)
+
+  const top = rect ? Math.max(8, rect.top - 48) : 72
   const left = rect
-    ? Math.min(window.innerWidth - 132, rect.right + 8)
-    : window.innerWidth / 2 - 60
-  pill.style.top = `${top}px`
-  pill.style.left = `${left}px`
+    ? Math.min(window.innerWidth - 352, Math.max(12, rect.left))
+    : Math.max(12, window.innerWidth / 2 - 170)
+  prompt.style.top = `${top}px`
+  prompt.style.left = `${Math.max(12, left)}px`
 
-  document.body.appendChild(pill)
-
-  const animation = pill.animate(
-    [
-      { transform: "translateY(0) scale(0.6)", opacity: 0 },
-      { transform: "translateY(-8px) scale(1.05)", opacity: 1, offset: 0.25 },
-      { transform: "translateY(-12px) scale(1)", opacity: 1, offset: 0.7 },
-      { transform: "translateY(-28px) scale(0.95)", opacity: 0 }
-    ],
-    { duration: 1300, easing: "ease-out" }
-  )
-  animation.onfinish = () => pill.remove()
+  document.body.appendChild(prompt)
+  thoughtPrompt = prompt
+  scheduleThoughtPromptExpiry()
 }
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
@@ -217,7 +306,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
   // Triggered by the background context-menu path after a successful save.
   if (message?.type === "echo:show-star") {
-    flashSaved(getSelectionRect())
+    showThoughtPrompt(getSelectionRect(), message.echoId)
     return
   }
 

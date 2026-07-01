@@ -7,7 +7,8 @@
   "scripts": {
     "dev": "plasmo dev",
     "build": "plasmo build",
-    "package": "plasmo package"
+    "package": "plasmo package",
+    "test": "vitest run"
   },
   "dependencies": {
     "@plasmohq/messaging": "^0.7.2",
@@ -25,7 +26,8 @@
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.17",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vitest": "^4.1.9"
   },
   "manifest": {
     "manifest_version": 3,

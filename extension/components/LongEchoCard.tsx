@@ -3,12 +3,11 @@ import {
   Bot,
   ExternalLink,
   FileText,
-  Pin,
-  Sparkles,
-  Trash2
+  Sparkles
 } from "lucide-react"
 
 import type { Echo } from "~db/echoes"
+import { EchoCardActions } from "~components/EchoCardActions"
 import { longCollectPresentation } from "~lib/echo-presentation"
 
 type LongEchoCardProps = {
@@ -51,41 +50,39 @@ export const LongEchoCard = ({
           <SourceIcon size={18} strokeWidth={1.8} />
         </div>
 
-        <div className="min-w-0 flex-1 pr-12">
-          <h2 className="break-words text-body-md font-semibold leading-snug text-on-surface">
-            {presentation.title}
-          </h2>
-          <p className="mt-1 line-clamp-2 break-words text-body-sm leading-snug text-on-surface-variant">
-            “{presentation.preview}”
-          </p>
-          <p className="mt-2 text-label-sm text-on-surface-variant/80">
-            {presentation.meta}
-          </p>
+        <div className="min-w-0 flex-1">
+          {echo.userThought ? (
+            <p className="whitespace-pre-wrap break-words text-body-md font-medium leading-snug text-on-surface">
+              {echo.userThought}
+            </p>
+          ) : null}
+
+          <div
+            className={
+              echo.userThought
+                ? "mt-2 border-t border-outline-variant/40 pt-2"
+                : undefined
+            }>
+            <h2 className="break-words text-body-md font-semibold leading-snug text-on-surface">
+              {presentation.title}
+            </h2>
+            <p className="mt-1 line-clamp-2 break-words text-body-sm leading-snug text-on-surface-variant">
+              “{presentation.preview}”
+            </p>
+            <p className="mt-2 text-label-sm text-on-surface-variant/80">
+              {presentation.meta}
+            </p>
+          </div>
         </div>
 
-        <div
-          className={`action-reveal absolute right-2 top-2 flex items-center gap-1 transition-opacity ${
-            isPinned ? "opacity-100" : "opacity-0"
-          }`}>
-          <button
-            aria-label={isPinned ? "Unpin echo" : "Pin echo"}
-            className={`rounded-full p-1 transition-colors ${
-              isPinned
-                ? "text-primary hover:bg-primary-container"
-                : "text-outline hover:bg-secondary-container hover:text-primary"
-            }`}
-            onClick={() => onTogglePin?.(echo.id)}
-            type="button">
-            <Pin size={16} className={isPinned ? "fill-primary" : ""} />
-          </button>
-          <button
-            aria-label="Delete echo"
-            className="rounded-full p-1 text-outline hover:bg-error-container hover:text-error"
-            onClick={() => onDelete?.(echo.id)}
-            type="button">
-            <Trash2 size={16} />
-          </button>
-        </div>
+      </div>
+
+      <div className="action-zone absolute right-1 top-1 z-10 flex h-10 w-24 items-start justify-end p-1">
+        <EchoCardActions
+          echo={echo}
+          onDelete={onDelete}
+          onTogglePin={onTogglePin}
+        />
       </div>
 
       {showMarkdown ? (
@@ -95,22 +92,24 @@ export const LongEchoCard = ({
       ) : null}
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <button
-          className="inline-flex items-center gap-1.5 rounded-full border border-outline-variant px-3 py-1.5 text-label-sm font-medium text-secondary transition-colors hover:bg-secondary-container"
-          onClick={() => setShowMarkdown((value) => !value)}
-          type="button">
-          <FileText size={14} />
-          {showMarkdown ? "收起 Markdown" : "查看 Markdown"}
-        </button>
-        {echo.url ? (
+        <div className="flex flex-wrap items-center gap-2">
           <button
             className="inline-flex items-center gap-1.5 rounded-full border border-outline-variant px-3 py-1.5 text-label-sm font-medium text-secondary transition-colors hover:bg-secondary-container"
-            onClick={() => onOpenSource?.(echo)}
+            onClick={() => setShowMarkdown((value) => !value)}
             type="button">
-            <ExternalLink size={14} />
-            打开原位置
+            <FileText size={14} />
+            {showMarkdown ? "收起 Markdown" : "查看 Markdown"}
           </button>
-        ) : null}
+          {echo.url ? (
+            <button
+              className="inline-flex items-center gap-1.5 rounded-full border border-outline-variant px-3 py-1.5 text-label-sm font-medium text-secondary transition-colors hover:bg-secondary-container"
+              onClick={() => onOpenSource?.(echo)}
+              type="button">
+              <ExternalLink size={14} />
+              打开原位置
+            </button>
+          ) : null}
+        </div>
       </div>
     </article>
   )
