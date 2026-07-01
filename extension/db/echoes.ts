@@ -1,5 +1,7 @@
 import Dexie, { type Table } from "dexie"
 
+import type { EchoCapture } from "~capture/types"
+
 export type EchoStatus = "raw" | "inferred" | "confirmed" | "ignored" | "pinned"
 
 export type Echo = {
@@ -12,9 +14,7 @@ export type Echo = {
   title: string
   createdAt: string
   status: EchoStatus
-  // Resurface bookkeeping (added v4). Optional so legacy records stay valid.
-  lastSurfacedAt?: string
-  snoozeUntil?: string
+  capture?: EchoCapture
 }
 
 type LegacyEcho = Omit<Partial<Echo>, "status"> & {
@@ -45,8 +45,8 @@ class EchoDatabase extends Dexie {
 
         await Promise.all(records.map((record) => table.put(normalizeEcho(record))))
       })
-    // v4 adds optional lastSurfacedAt / snoozeUntil. Fields are not indexed, so
-    // no schema change is needed beyond bumping the version.
+    // Keep the historical v4 declaration so existing browser databases can
+    // open without a version rollback.
     this.version(4).stores({
       sparks: "id, createdAt, status, sourceApp, url"
     })
@@ -61,12 +61,7 @@ export const listRecentEchoes = async () => {
     .map((record) => normalizeEcho(record))
     .filter((record) => ["raw", "inferred", "confirmed", "pinned"].includes(record.status))
 
-  return echoes.sort((a, b) => {
-    const aPinned = a.status === "pinned" ? 1 : 0
-    const bPinned = b.status === "pinned" ? 1 : 0
-    if (aPinned !== bPinned) return bPinned - aPinned
-    return b.createdAt.localeCompare(a.createdAt)
-  })
+  return echoes.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
 }
 
 export type CreateEchoInput = {
@@ -77,6 +72,7 @@ export type CreateEchoInput = {
   url?: string
   title?: string
   status?: EchoStatus
+  capture?: EchoCapture
 }
 
 export const createEcho = async (echo: CreateEchoInput) => {
@@ -89,7 +85,8 @@ export const createEcho = async (echo: CreateEchoInput) => {
     url: echo.url ?? "",
     title: echo.title ?? "",
     createdAt: new Date().toISOString(),
-    status: echo.status ?? "raw"
+    status: echo.status ?? "raw",
+    capture: echo.capture
   }
 
   await db.sparks.add(record)
@@ -98,10 +95,6 @@ export const createEcho = async (echo: CreateEchoInput) => {
 
 export const deleteEcho = async (id: string) => {
   await db.sparks.delete(id)
-}
-
-export const setEchoStatus = async (id: string, status: EchoStatus) => {
-  await db.sparks.update(id, { status })
 }
 
 // Toggle pin. Unpinning restores a sensible status: keep it a thought-bearing
@@ -116,37 +109,6 @@ export const togglePin = async (id: string) => {
 
   await db.sparks.update(id, { status: next })
   return next
-}
-
-// --- Resurface lifecycle -------------------------------------------------
-
-// Mark echoes as just shown, so they enter a cooldown and don't nag on every
-// panel open. Does not notify the list (lastSurfacedAt has no visible effect).
-export const markSurfaced = async (ids: string[]) => {
-  const now = new Date().toISOString()
-  await Promise.all(ids.map((id) => db.sparks.update(id, { lastSurfacedAt: now })))
-}
-
-// "稍后" — hide from resurfacing until `ms` from now.
-export const snoozeEcho = async (id: string, ms: number) => {
-  const until = new Date(Date.now() + ms).toISOString()
-  await db.sparks.update(id, { snoozeUntil: until })
-}
-
-// Collect -> Keep upgrade: a raw quote becomes a thought-bearing echo when the
-// user writes what it makes them think (typically at resurface time).
-export const addThought = async (id: string, thought: string) => {
-  const clean = thought.trim()
-  if (!clean) return
-
-  const record = await db.sparks.get(id)
-  if (!record) return
-
-  const current = normalizeEcho(record)
-  await db.sparks.update(id, {
-    userThought: clean,
-    status: current.status === "pinned" ? "pinned" : "confirmed"
-  })
 }
 
 const normalizeStatus = (status?: LegacyEcho["status"]): EchoStatus => {
@@ -173,7 +135,6 @@ export const normalizeEcho = (record: LegacyEcho): Echo => {
     title: record.title ?? "",
     createdAt: record.createdAt ?? new Date().toISOString(),
     status: normalizeStatus(record.status),
-    lastSurfacedAt: record.lastSurfacedAt,
-    snoozeUntil: record.snoozeUntil
+    capture: record.capture
   }
 }

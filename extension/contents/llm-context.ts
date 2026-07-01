@@ -1,5 +1,9 @@
 import type { PlasmoCSConfig } from "plasmo"
 
+import { locateEchoAnchor } from "~capture/anchor"
+import { getSelectionCapture } from "~capture/selection"
+import type { SelectionCapture } from "~capture/types"
+
 export const config: PlasmoCSConfig = {
   matches: [
     "https://chatgpt.com/*",
@@ -13,14 +17,15 @@ export const config: PlasmoCSConfig = {
 }
 
 let addButton: HTMLButtonElement | null = null
-let lastSelection = ""
+let lastSelectionCapture: SelectionCapture | null = null
+let buttonExpiry: Animation | null = null
 
-const getSelectionText = () => {
-  const selection = window.getSelection()
-  if (!selection || selection.isCollapsed) return ""
+const ADD_BUTTON_ID = "echo-add-to-echo-button"
+const ADD_BUTTON_LIFETIME_MS = 10_000
 
-  return selection.toString().trim()
-}
+// A reloaded unpacked extension can leave DOM from its invalidated content
+// script behind. Remove any previous instance when a live script starts.
+document.getElementById(ADD_BUTTON_ID)?.remove()
 
 const getSelectionRect = () => {
   const selection = window.getSelection()
@@ -36,6 +41,7 @@ const ensureAddButton = () => {
   if (addButton) return addButton
 
   addButton = document.createElement("button")
+  addButton.id = ADD_BUTTON_ID
   addButton.type = "button"
   addButton.textContent = "Add to Echo"
   addButton.style.cssText = [
@@ -61,35 +67,54 @@ const ensureAddButton = () => {
     event.preventDefault()
     event.stopPropagation()
 
-    const quote = lastSelection.trim()
-    if (!quote) return
+    const selectionCapture = lastSelectionCapture
+    if (!selectionCapture?.plainText || addButton?.disabled) return
 
     const rect = getSelectionRect()
     addButton!.textContent = "Adding..."
+    addButton!.disabled = true
 
-    const response = await chrome.runtime.sendMessage({
-      type: "echo:add-selection",
-      quote,
-      title: document.title,
-      url: location.href
-    })
-
-    if (response?.ok) {
-      hideAddButton()
-      flashSaved(rect)
+    const runtime = globalThis.chrome?.runtime
+    if (!runtime?.sendMessage) {
+      addButton!.textContent = "Refresh page"
+      addButton!.disabled = false
       return
     }
 
-    addButton!.textContent = "Try again"
-    setTimeout(hideAddButton, 1200)
+    try {
+      const response = await runtime.sendMessage({
+        type: "echo:add-selection",
+        quote: selectionCapture.plainText,
+        capture: selectionCapture.capture,
+        title: document.title,
+        url: location.href
+      })
+
+      if (response?.ok) {
+        hideAddButton()
+        flashSaved(rect)
+        return
+      }
+
+      addButton!.textContent = "Try again"
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      addButton!.textContent =
+        message.includes("context invalidated") || message.includes("sendMessage")
+        ? "Refresh page"
+        : "Try again"
+    }
+
+    addButton!.disabled = false
+    setTimeout(hideAddButton, 1800)
   })
 
   document.body.appendChild(addButton)
   return addButton
 }
 
-const showAddButton = (rect: DOMRect, text: string) => {
-  lastSelection = text
+const showAddButton = (rect: DOMRect, selectionCapture: SelectionCapture) => {
+  lastSelectionCapture = selectionCapture
   const button = ensureAddButton()
   const top = Math.max(window.scrollY + 8, window.scrollY + rect.top - 40)
   const left = Math.min(window.scrollX + rect.left, window.scrollX + window.innerWidth - 132)
@@ -98,10 +123,31 @@ const showAddButton = (rect: DOMRect, text: string) => {
   button.style.left = `${left}px`
   button.style.display = "block"
   button.textContent = "Add to Echo"
+  button.disabled = false
+
+  buttonExpiry?.cancel()
+  buttonExpiry = button.animate(
+    [
+      { opacity: 1, pointerEvents: "auto" },
+      { opacity: 1, pointerEvents: "auto", offset: 0.9 },
+      { opacity: 0, pointerEvents: "none" }
+    ],
+    {
+      duration: ADD_BUTTON_LIFETIME_MS,
+      fill: "forwards"
+    }
+  )
+  buttonExpiry.onfinish = hideAddButton
 }
 
 const hideAddButton = () => {
-  if (addButton) addButton.style.display = "none"
+  buttonExpiry?.cancel()
+  buttonExpiry = null
+  if (addButton) {
+    addButton.style.display = "none"
+    addButton.style.opacity = "1"
+    addButton.style.pointerEvents = "auto"
+  }
 }
 
 // Quick, non-intrusive "saved" confirmation near the selection. No side panel
@@ -155,11 +201,17 @@ const flashSaved = (rect: DOMRect | null) => {
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message?.type === "echo:get-page-context") {
+    const selectionCapture = getSelectionCapture()
     sendResponse({
       title: document.title,
       url: location.href,
-      selection: window.getSelection()?.toString().trim() ?? ""
+      selection: selectionCapture?.plainText ?? ""
     })
+    return
+  }
+
+  if (message?.type === "echo:get-selection-capture") {
+    sendResponse({ selectionCapture: getSelectionCapture() })
     return
   }
 
@@ -168,12 +220,19 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     flashSaved(getSelectionRect())
     return
   }
+
+  if (message?.type === "echo:locate-anchor" && message.anchor) {
+    locateEchoAnchor(message.anchor).then((found) => sendResponse({ found }))
+    return true
+  }
 })
 
-document.addEventListener("mouseup", () => {
+document.addEventListener("mouseup", (event) => {
+  if (addButton && event.target === addButton) return
+
   setTimeout(() => {
-    const text = getSelectionText()
-    if (!text) {
+    const selectionCapture = getSelectionCapture()
+    if (!selectionCapture) {
       hideAddButton()
       return
     }
@@ -184,7 +243,7 @@ document.addEventListener("mouseup", () => {
       return
     }
 
-    showAddButton(rect, text)
+    showAddButton(rect, selectionCapture)
   }, 10)
 })
 
@@ -196,3 +255,22 @@ document.addEventListener("mousedown", (event) => {
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") hideAddButton()
 })
+
+const resumePendingAnchor = async () => {
+  try {
+    const response = await chrome.runtime.sendMessage({
+      type: "echo:get-pending-anchor"
+    })
+    if (!response?.anchor) return
+
+    const found = await locateEchoAnchor(response.anchor)
+    await chrome.runtime.sendMessage({
+      type: "echo:anchor-result",
+      found
+    })
+  } catch {
+    // The extension may be reloading while the page initializes.
+  }
+}
+
+resumePendingAnchor()

@@ -2,10 +2,13 @@ import type { Echo } from "~db/echoes"
 import { Bot, Link, Pin, Sparkles, Trash2 } from "lucide-react"
 
 import { ExpandableText } from "~components/ExpandableText"
+import { LongEchoCard } from "~components/LongEchoCard"
+import { isLongCollect } from "~lib/echo-presentation"
 
 type EchoCardProps = {
   echo: Echo
   onDelete?: (id: string) => void
+  onOpenSource?: (echo: Echo) => void
   onTogglePin?: (id: string) => void
 }
 
@@ -33,7 +36,23 @@ const iconForSource = (source?: string) => {
   return Bot
 }
 
-export const EchoCard = ({ echo, onDelete, onTogglePin }: EchoCardProps) => {
+export const EchoCard = ({
+  echo,
+  onDelete,
+  onOpenSource,
+  onTogglePin
+}: EchoCardProps) => {
+  if (isLongCollect(echo)) {
+    return (
+      <LongEchoCard
+        echo={echo}
+        onDelete={onDelete}
+        onOpenSource={onOpenSource}
+        onTogglePin={onTogglePin}
+      />
+    )
+  }
+
   const SourceIcon = iconForSource(echo.sourceApp)
   const isPinned = echo.status === "pinned"
   const displayText = echo.userThought || echo.inferredThought || echo.triggerText

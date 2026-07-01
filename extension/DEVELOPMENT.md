@@ -183,3 +183,215 @@ Consistency rule:
 Verification:
 
 - `npm run build` completed successfully after the ordering change.
+
+## 2026-07-01
+
+### Remove Neglect-Driven Top 3
+
+Dogfood showed that computing three neglected Echoes whenever the side panel
+opened made the product feel like a review queue and reduced normal use.
+
+Changes:
+
+- Removed the automatic Top 3 computation and the resurface section from
+  `sidepanel.tsx`.
+- Removed the failed neglect scoring module and its dedicated resurface card.
+- Removed resurface-only database helpers for marking, snoozing, archiving, and
+  forced Collect-to-Keep upgrades.
+- Restored the opening flow to Keep first, followed immediately by the normal
+  Echo list.
+- Restored `All Echoes` to strict newest-first ordering. Pinned items remain
+  available through the existing Pinned filter but no longer displace new items.
+- Kept Dexie at schema version 4 to avoid rolling back existing local databases.
+  Historical resurface fields already stored by Chrome are ignored; Echo content
+  is not migrated or deleted.
+
+Product boundary:
+
+- Collect remains direct and does not open the side panel.
+- Keep remains the primary reason to open the side panel.
+- Opening Echo does not create a review task or require the user to respond.
+- Future recall work must be explicit or high-confidence and low-interruption.
+
+Verification:
+
+- `npm run build` completed successfully.
+- Generated Chrome MV3 output remains at `build/chrome-mv3-prod`.
+- Plasmo still reports the existing optional `svgo` optimization notice; it
+  does not block the build.
+
+### Selection Button After Extension Reload
+
+During local development, reloading the extension invalidates content scripts
+that are already running in open LLM tabs. Their injected `Add to Echo` button
+can remain visible even though its connection to the new background worker is
+gone; the context menu still works because it belongs to the reloaded worker.
+
+Changes:
+
+- Disabled the floating button while a save request is in flight.
+- Added explicit error handling around `chrome.runtime.sendMessage`.
+- The button now displays `Refresh page` when its extension context was
+  invalidated or `chrome.runtime` is unavailable, and `Try again` for other
+  save failures.
+- Refreshing the affected LLM tab reinjects the active content script and
+  restores the normal click-to-collect path.
+
+Verification:
+
+- `npm run build` completed successfully.
+- Plasmo's existing optional `svgo` notice remains non-blocking.
+- Reproduced the stale-script failure in the user's open Gemini tab:
+  `chrome.runtime` was unavailable, so the message never reached the worker.
+- Opened a fresh supported Grok page and verified selection, floating-button
+  click, `Saved to Echo` feedback, and background persistence with no console
+  errors.
+
+### Preserve Paragraphs In Collected Text
+
+Large selections spanning multiple paragraphs were stored as one continuous
+block on some LLM pages.
+
+Cause:
+
+- `Selection.toString()` and Chrome's context-menu `selectionText` do not
+  reliably preserve boundaries between block-level elements in every LLM DOM.
+- Card rendering already used `whitespace-pre-wrap`, so the loss happened
+  before the Echo reached Dexie.
+
+Changes:
+
+- Added DOM Range-based selection extraction in the content script.
+- Paragraphs, headings, list items, block quotes, table rows, and `<br>`
+  elements now contribute line breaks.
+- Normalized non-breaking spaces and excessive blank lines before saving.
+- The right-click context-menu path now asks the content script for the same
+  formatted selection and falls back to Chrome's plain `selectionText` when the
+  page script is unavailable.
+- Existing Echo records are unchanged; paragraph preservation applies to new
+  Collect actions.
+
+Verification:
+
+- `npm run build` completed successfully.
+- The generated content script contains the DOM Range parser and the
+  `echo:get-selection-capture` message used by the context-menu fallback.
+- Plasmo's existing optional `svgo` notice remains non-blocking.
+
+### Prevent Stale Selection Buttons
+
+The floating button appeared to fail again after extension reloads.
+
+Browser verification found two separate causes:
+
+- Reloading an unpacked extension invalidates its running content scripts, but
+  an already injected button can remain in the page DOM without a live click
+  listener.
+- Clicking a live button also bubbled a `mouseup` event to the document
+  selection handler, which immediately showed and reset the button again after
+  the save started.
+
+Changes:
+
+- Added a stable DOM ID and remove any previous button when a live content
+  script starts.
+- Ignore document-level `mouseup` handling when the event came from the
+  floating button.
+- Added a 10-second Web Animation expiry so an abandoned button fades out and
+  stops accepting clicks instead of remaining indefinitely.
+- Kept the context-menu path as the fallback while an old page still needs a
+  refresh after an unpacked extension reload.
+
+Verification:
+
+- Reproduced a listener-less stale button in the user's Grok tab.
+- Reloaded that tab, selected text again, and verified the live script saved
+  successfully with the `Saved to Echo` confirmation and no console errors.
+- `npm run build` completed successfully for the lifecycle changes.
+- Plasmo's existing optional `svgo` notice remains non-blocking.
+
+### Structured Capture Envelope
+
+Long content support was implemented as one versioned capture envelope instead
+of adding unrelated fields for each content type.
+
+Architecture:
+
+- `capture/types.ts`: versioned data contract shared by capture, persistence,
+  presentation, and navigation.
+- `capture/serializer.ts`: deterministic plain-text and Markdown conversion for
+  paragraphs, headings, emphasis, links, lists, quotes, code, and tables.
+- `capture/title-resolver.ts`: high-confidence semantic title and separate
+  one-sentence preview.
+- `capture/anchor.ts`: provider message ID and generic text-quote anchor
+  creation, exact and high-confidence fuzzy DOM lookup, scrolling, and
+  temporary highlighting.
+- `capture/selection.ts`: the only selection orchestration entry point.
+- `lib/echo-presentation.ts`: centralized long/structured presentation rules.
+- `components/LongEchoCard.tsx`: compact card, Markdown viewer, and
+  open-original-position command.
+
+Compatibility rules:
+
+- `triggerText` remains the canonical plain-text fallback and existing records
+  require no migration.
+- New Collect records optionally add `capture.version = 1`.
+- Floating-button and context-menu capture use the same selection envelope.
+- Context-menu capture falls back to Chrome's plain selection when the content
+  script is unavailable.
+- Missing semantic headings use `Long capture from {source}`; the first
+  meaningful sentence remains a preview and is never promoted to a fake title.
+- Existing long records without capture metadata still receive a compact card
+  and best-effort source anchor.
+- A failed anchor does not block opening the source conversation.
+- No raw HTML is persisted.
+- No Obsidian routing or automatic knowledge-base decision was added.
+
+Presentation rules:
+
+- External Collects become compact when they exceed 360 characters, exceed
+  eight lines, contain a table or code block, or contain more than four list
+  items.
+- Manual Keep notes retain the existing card behavior.
+- Markdown is opt-in and scrollable; structured content is never expanded by
+  default in the list.
+
+Verification:
+
+- `npm run build` completed successfully after the capture envelope,
+  presentation layer, and anchor navigation were integrated.
+- A second production build passed after table plain-text separation and
+  nearby-heading distance limits were added.
+- Plasmo's existing optional `svgo` notice remains non-blocking.
+
+### Cross-provider Anchor Reliability
+
+Real-page verification found three distinct behaviors:
+
+- Gemini retained the selected text and accepted the original direct locator.
+- Grok retained the full text, but its SPA replaced the document after the
+  background worker had already delivered the locator message.
+- ChatGPT changed both the stored message ID and nearby wording, so neither the
+  provider ID nor an exact quote was stable enough by itself.
+
+The locator now uses one provider-neutral recovery path:
+
+- The background worker stores a pending anchor in `chrome.storage.session`
+  before opening the source tab.
+- Each freshly initialized content script asks for that tab's pending anchor,
+  so a SPA document replacement cannot permanently lose the request.
+- Matching tries provider ID, exact quote, then token-based fuzzy similarity
+  with a conservative threshold.
+- A successful match clears the pending task; failed tasks expire after 24
+  hours.
+- Source URLs are opened without Text Fragment suffixes because dynamic LLM
+  applications may consume or race against fragment navigation.
+
+No Grok-, ChatGPT-, or Gemini-specific selector branch was added.
+
+Verification:
+
+- `npm run build` completed successfully.
+- The saved ChatGPT title matched its changed DNA teaching-design section at
+  `0.522`, above the conservative `0.48` fuzzy threshold.
+- Grok and ChatGPT still require extension reload and end-to-end user retest.

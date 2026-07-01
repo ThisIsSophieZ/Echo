@@ -1,26 +1,15 @@
 import { useEffect, useMemo, useState } from "react"
-import { History, Home, Lightbulb, Plus, Search, Settings, Sparkles, Zap } from "lucide-react"
+import { History, Home, Lightbulb, Plus, Search, Settings, Zap } from "lucide-react"
 
 import { EchoCard } from "~components/EchoCard"
-import { ResurfaceCard } from "~components/ResurfaceCard"
 import {
-  addThought,
   createEcho,
   deleteEcho,
   listRecentEchoes,
-  markSurfaced,
-  setEchoStatus,
-  snoozeEcho,
   togglePin,
   type Echo
 } from "~db/echoes"
 import { ECHO_LIST_CHANGED_KEY, notifyEchoListChanged } from "~lib/echo-events"
-import {
-  selectResurfaced,
-  SNOOZE_DEFAULT_MS,
-  type ResurfaceContext,
-  type ResurfaceItem
-} from "~lib/resurface"
 import { detectSourceApp } from "~lib/source-app"
 
 import "./style.css"
@@ -68,7 +57,6 @@ const SidePanel = () => {
   const [context, setContext] = useState<PageContext>({})
   const [thought, setThought] = useState("")
   const [echoes, setEchoes] = useState<Echo[]>([])
-  const [resurfaced, setResurfaced] = useState<ResurfaceItem[]>([])
   const [isSaving, setIsSaving] = useState(false)
   const [filter, setFilter] = useState<"all" | "insights" | "pinned">("all")
 
@@ -82,25 +70,11 @@ const SidePanel = () => {
     setEchoes(await listRecentEchoes())
   }
 
-  // Computed once per panel open: resurfacing should feel like a calm daily
-  // glance, not a feed that reshuffles on every action.
-  const computeResurfaced = async (ctx: ResurfaceContext) => {
-    const all = await listRecentEchoes()
-    const items = selectResurfaced(all, ctx)
-    setResurfaced(items)
-    if (items.length) await markSurfaced(items.map((item) => item.echo.id))
-  }
-
-  const dismissResurfaced = (id: string) => {
-    setResurfaced((items) => items.filter((item) => item.echo.id !== id))
-  }
-
   useEffect(() => {
     ;(async () => {
       const ctx = await getPageContext()
       setContext(ctx)
       await refreshEchoes()
-      await computeResurfaced(ctx)
     })()
   }, [])
 
@@ -150,30 +124,13 @@ const SidePanel = () => {
     await notifyEchoListChanged()
   }
 
-  const handleResurfacePin = async (id: string) => {
-    await togglePin(id)
-    dismissResurfaced(id)
-    await refreshEchoes()
-    await notifyEchoListChanged()
-  }
-
-  const handleResurfaceSnooze = async (id: string) => {
-    await snoozeEcho(id, SNOOZE_DEFAULT_MS)
-    dismissResurfaced(id)
-  }
-
-  const handleResurfaceArchive = async (id: string) => {
-    await setEchoStatus(id, "ignored")
-    dismissResurfaced(id)
-    await refreshEchoes()
-    await notifyEchoListChanged()
-  }
-
-  const handleResurfaceAddThought = async (id: string, value: string) => {
-    await addThought(id, value)
-    dismissResurfaced(id)
-    await refreshEchoes()
-    await notifyEchoListChanged()
+  const handleOpenSource = async (echo: Echo) => {
+    await chrome.runtime.sendMessage({
+      type: "echo:open-source",
+      url: echo.url,
+      anchor: echo.capture?.anchor,
+      fallbackText: echo.triggerText
+    })
   }
 
   return (
@@ -232,29 +189,7 @@ const SidePanel = () => {
               </button>
             </div>
           </div>
-
         </section>
-
-        {resurfaced.length ? (
-          <section className="mb-stack-lg">
-            <div className="mb-stack-sm flex items-center gap-2 text-label-md text-on-surface-variant">
-              <Sparkles size={15} className="text-primary" />
-              回声 · 此刻也许相关
-            </div>
-            <div className="space-y-stack-sm">
-              {resurfaced.map((item) => (
-                <ResurfaceCard
-                  key={item.echo.id}
-                  item={item}
-                  onPin={handleResurfacePin}
-                  onSnooze={handleResurfaceSnooze}
-                  onArchive={handleResurfaceArchive}
-                  onAddThought={handleResurfaceAddThought}
-                />
-              ))}
-            </div>
-          </section>
-        ) : null}
 
         <div className="mb-stack-md flex items-center gap-2 overflow-x-auto pb-1">
           {[
@@ -283,6 +218,7 @@ const SidePanel = () => {
                 key={echo.id}
                 echo={echo}
                 onDelete={handleDeleteEcho}
+                onOpenSource={handleOpenSource}
                 onTogglePin={handleTogglePin}
               />
             ))

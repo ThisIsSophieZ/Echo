@@ -2,7 +2,7 @@
   "name": "echo-sidebar",
   "displayName": "Echo Sidebar",
   "version": "0.1.0",
-  "description": "A lightweight Chrome side panel for capturing and resurfacing useful thought fragments.",
+  "description": "A lightweight Chrome side panel for capturing and recalling useful thought fragments.",
   "private": true,
   "scripts": {
     "dev": "plasmo dev",
