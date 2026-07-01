@@ -1,6 +1,8 @@
 import type { Echo } from "~db/echoes"
 import { Bot, Link, Pin, Sparkles, Trash2 } from "lucide-react"
 
+import { ExpandableText } from "~components/ExpandableText"
+
 type EchoCardProps = {
   echo: Echo
   onDelete?: (id: string) => void
@@ -52,15 +54,16 @@ export const EchoCard = ({ echo, onDelete, onTogglePin }: EchoCardProps) => {
       </div>
 
       <div className="min-w-0 flex-1">
-        <p className="whitespace-pre-wrap break-words text-body-md leading-snug text-on-surface">
-          {displayText}
-        </p>
+        <ExpandableText text={displayText} />
 
         {echo.userThought && echo.triggerText && echo.userThought !== echo.triggerText ? (
-          <span className="mt-1 flex items-center gap-1 truncate text-label-sm text-primary">
-            <Link size={12} />
-            Source: {echo.triggerText}
-          </span>
+          <div className="mt-2 border-t border-outline-variant/40 pt-2">
+            <p className="mb-1 flex items-center gap-1 text-label-sm text-on-surface-variant">
+              <Link size={12} />
+              来源片段
+            </p>
+            <ExpandableText text={echo.triggerText} tone="quote" />
+          </div>
         ) : null}
 
         <div className="mt-1 flex items-center gap-2 text-on-surface-variant">

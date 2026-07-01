@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Archive, Clock, Pin, Quote, Sparkles } from "lucide-react"
 
+import { ExpandableText } from "~components/ExpandableText"
 import type { ResurfaceItem } from "~lib/resurface"
 
 type ResurfaceCardProps = {
@@ -53,14 +54,14 @@ export const ResurfaceCard = ({
       </div>
 
       {mode === "keep" ? (
-        <p className="whitespace-pre-wrap break-words text-body-md leading-snug text-on-surface">
-          {echo.userThought}
-        </p>
+        <ExpandableText text={echo.userThought ?? ""} />
       ) : (
-        <p className="flex gap-1.5 whitespace-pre-wrap break-words text-body-md leading-snug text-on-surface-variant">
+        <div className="flex gap-1.5">
           <Quote size={14} className="mt-1 shrink-0 text-outline" />
-          <span className="line-clamp-3">{echo.triggerText}</span>
-        </p>
+          <div className="min-w-0 flex-1">
+            <ExpandableText text={echo.triggerText} tone="quote" />
+          </div>
+        </div>
       )}
 
       <div className="mt-1 text-label-sm text-on-surface-variant/70">
