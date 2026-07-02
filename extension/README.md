@@ -80,6 +80,24 @@ The previous neglect-driven resurface experiment was removed after dogfooding sh
 that opening the panel felt like receiving work. Contextual recall will be tested
 later as an explicit or high-confidence, low-interruption interaction.
 
+## Local search
+
+The bottom Search button opens the first on-demand recall surface.
+
+- Search runs against the Echoes already loaded from Dexie; it does not add a
+  database index or schema migration.
+- Matching covers `triggerText`, `userThought`, `inferredThought`, `title`, and
+  `sourceApp`.
+- Input is normalized with Unicode NFKC, lowercased, and split on whitespace.
+  Every entered term must appear somewhere in the combined searchable text.
+- Results keep the existing newest-first order.
+- Closing Search or pressing Home clears the query and restores the Keep
+  composer and normal filter chips.
+- Pure search matching lives in `lib/echo-search.ts` and is covered by focused
+  regression tests.
+- No AI ranking, fuzzy matching, vectors, or external search dependency is
+  included in this MVP.
+
 ## Echo data shape (full)
 
 ```ts

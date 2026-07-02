@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
-import { History, Home, Lightbulb, Plus, Search, Settings, Zap } from "lucide-react"
+import { History, Home, Lightbulb, Plus, Search, Settings, X, Zap } from "lucide-react"
 
 import { EchoCard } from "~components/EchoCard"
 import {
@@ -10,6 +10,7 @@ import {
   type Echo
 } from "~db/echoes"
 import { ECHO_LIST_CHANGED_KEY, notifyEchoListChanged } from "~lib/echo-events"
+import { matchesEchoSearch } from "~lib/echo-search"
 import { detectSourceApp } from "~lib/source-app"
 
 import "./style.css"
@@ -19,6 +20,8 @@ type PageContext = {
   url?: string
   selection?: string
 }
+
+type SidebarView = "home" | "search"
 
 const getCurrentTab = async () => {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
@@ -59,12 +62,30 @@ const SidePanel = () => {
   const [echoes, setEchoes] = useState<Echo[]>([])
   const [isSaving, setIsSaving] = useState(false)
   const [filter, setFilter] = useState<"all" | "insights" | "pinned">("all")
+  const [view, setView] = useState<SidebarView>("home")
+  const [searchQuery, setSearchQuery] = useState("")
 
   const sourceApp = useMemo(() => detectSourceApp(context.url), [context.url])
   const visibleEchoes = useMemo(() => {
+    if (view === "search") {
+      return echoes.filter((echo) => matchesEchoSearch(echo, searchQuery))
+    }
+
     if (filter === "pinned") return echoes.filter((echo) => echo.status === "pinned")
     return echoes
-  }, [filter, echoes])
+  }, [echoes, filter, searchQuery, view])
+
+  const showHome = () => {
+    setView("home")
+    setSearchQuery("")
+  }
+
+  const focusComposer = () => {
+    showHome()
+    setTimeout(() => {
+      document.querySelector<HTMLTextAreaElement>("[data-echo-composer]")?.focus()
+    })
+  }
 
   const refreshEchoes = async () => {
     setEchoes(await listRecentEchoes())
@@ -143,16 +164,17 @@ const SidePanel = () => {
 
         <div className="flex items-center gap-1">
           <button
+            aria-label="New echo"
             className="rounded-full p-2 text-secondary transition-colors hover:bg-secondary-container active:scale-95"
-            onClick={() => {
-              const input = document.querySelector<HTMLInputElement>(".chrome-input")
-              input?.focus()
-            }}
+            onClick={focusComposer}
+            title="New echo"
             type="button">
             <Plus size={20} />
           </button>
           <button
+            aria-label="Settings"
             className="rounded-full p-2 text-secondary transition-colors hover:bg-secondary-container active:scale-95"
+            title="Settings"
             type="button">
             <Settings size={20} />
           </button>
@@ -160,56 +182,90 @@ const SidePanel = () => {
       </header>
 
       <main className="flex-1 overflow-y-auto px-margin-side pb-24 pt-stack-lg">
-        <section className="mb-stack-lg space-y-stack-md">
-          <div className="rounded-lg border border-outline-variant bg-white p-3 shadow-sm">
-            <label className="mb-2 flex items-center gap-2 text-label-md text-on-surface-variant">
-              <Lightbulb size={16} className="text-tertiary" />
-              New echo
-            </label>
-            <textarea
-              className="min-h-24 w-full resize-none rounded-md border border-outline-variant bg-surface-container-lowest px-3 py-2 text-body-md text-on-surface outline-none transition focus:border-primary-container focus:bg-white focus:ring-2 focus:ring-primary-container/30"
-              placeholder="Add something to Echo..."
-              value={thought}
-              onChange={(event) => setThought(event.target.value)}
-              onKeyDown={(event) => {
-                if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
-                  event.preventDefault()
-                  saveEcho()
-                }
-              }}
-            />
-            <div className="mt-2 flex items-center justify-between gap-3">
-              <p className="text-label-sm text-on-surface-variant/70">Ctrl/⌘ + Enter to save</p>
+        {view === "search" ? (
+          <section className="mb-stack-lg">
+            <div className="flex items-center gap-2 rounded-md border border-outline-variant bg-white px-3 py-2 focus-within:border-primary-container focus-within:ring-2 focus-within:ring-primary-container/30">
+              <Search className="shrink-0 text-on-surface-variant" size={18} />
+              <input
+                autoFocus
+                className="min-w-0 flex-1 bg-transparent text-body-md text-on-surface outline-none"
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Search echoes..."
+                type="search"
+                value={searchQuery}
+              />
               <button
-                className="rounded-full bg-primary-container px-3 py-1.5 text-label-md font-medium text-on-primary transition hover:bg-primary disabled:cursor-not-allowed disabled:bg-surface-container-high disabled:text-on-surface-variant"
-                disabled={!thought.trim() || isSaving}
-                onClick={saveEcho}
+                aria-label="Close search"
+                className="rounded-full p-1 text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-on-surface"
+                onClick={showHome}
+                title="Close search"
                 type="button">
-                {isSaving ? "Saving..." : "Keep"}
+                <X size={17} />
               </button>
             </div>
-          </div>
-        </section>
+            <p className="mt-2 text-label-sm text-on-surface-variant">
+              {searchQuery.trim()
+                ? `${visibleEchoes.length} ${visibleEchoes.length === 1 ? "result" : "results"}`
+                : `${echoes.length} echoes`}
+            </p>
+          </section>
+        ) : (
+          <section className="mb-stack-lg space-y-stack-md">
+            <div className="rounded-lg border border-outline-variant bg-white p-3 shadow-sm">
+              <label className="mb-2 flex items-center gap-2 text-label-md text-on-surface-variant">
+                <Lightbulb size={16} className="text-tertiary" />
+                New echo
+              </label>
+              <textarea
+                className="min-h-24 w-full resize-none rounded-md border border-outline-variant bg-surface-container-lowest px-3 py-2 text-body-md text-on-surface outline-none transition focus:border-primary-container focus:bg-white focus:ring-2 focus:ring-primary-container/30"
+                data-echo-composer
+                placeholder="Add something to Echo..."
+                value={thought}
+                onChange={(event) => setThought(event.target.value)}
+                onKeyDown={(event) => {
+                  if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+                    event.preventDefault()
+                    saveEcho()
+                  }
+                }}
+              />
+              <div className="mt-2 flex items-center justify-between gap-3">
+                <p className="text-label-sm text-on-surface-variant/70">
+                  Ctrl/⌘ + Enter to save
+                </p>
+                <button
+                  className="rounded-full bg-primary-container px-3 py-1.5 text-label-md font-medium text-on-primary transition hover:bg-primary disabled:cursor-not-allowed disabled:bg-surface-container-high disabled:text-on-surface-variant"
+                  disabled={!thought.trim() || isSaving}
+                  onClick={saveEcho}
+                  type="button">
+                  {isSaving ? "Saving..." : "Keep"}
+                </button>
+              </div>
+            </div>
+          </section>
+        )}
 
-        <div className="mb-stack-md flex items-center gap-2 overflow-x-auto pb-1">
-          {[
-            ["all", "All Echoes"],
-            ["insights", "Insights"],
-            ["pinned", "Pinned"]
-          ].map(([key, label]) => (
-            <button
-              className={`whitespace-nowrap rounded-full px-3 py-1 text-label-md ${
-                filter === key
-                  ? "bg-secondary-container text-on-secondary-container"
-                  : "border border-outline-variant text-secondary hover:bg-surface-container-low"
-              }`}
-              key={key}
-              onClick={() => setFilter(key as typeof filter)}
-              type="button">
-              {label}
-            </button>
-          ))}
-        </div>
+        {view === "home" ? (
+          <div className="mb-stack-md flex items-center gap-2 overflow-x-auto pb-1">
+            {[
+              ["all", "All Echoes"],
+              ["insights", "Insights"],
+              ["pinned", "Pinned"]
+            ].map(([key, label]) => (
+              <button
+                className={`whitespace-nowrap rounded-full px-3 py-1 text-label-md ${
+                  filter === key
+                    ? "bg-secondary-container text-on-secondary-container"
+                    : "border border-outline-variant text-secondary hover:bg-surface-container-low"
+                }`}
+                key={key}
+                onClick={() => setFilter(key as typeof filter)}
+                type="button">
+                {label}
+              </button>
+            ))}
+          </div>
+        ) : null}
 
         <div className="space-y-stack-sm">
           {visibleEchoes.length ? (
@@ -224,7 +280,9 @@ const SidePanel = () => {
             ))
           ) : (
             <div className="rounded-lg border border-dashed border-outline-variant bg-white px-4 py-8 text-center text-body-md text-on-surface-variant">
-              No echoes yet.
+              {view === "search" && searchQuery.trim()
+                ? "No matching echoes."
+                : "No echoes yet."}
             </div>
           )}
         </div>
@@ -238,17 +296,33 @@ const SidePanel = () => {
 
       <nav className="fixed bottom-0 left-0 z-50 flex h-[56px] w-full items-center justify-around border-t border-outline-variant bg-surface px-gutter">
         <button
-          className="flex items-center justify-center rounded-full bg-secondary-container px-4 py-1 text-on-secondary-container transition-all duration-150 active:scale-90"
+          aria-label="Home"
+          className={`flex items-center justify-center rounded-full transition-all duration-150 active:scale-90 ${
+            view === "home"
+              ? "bg-secondary-container px-4 py-1 text-on-secondary-container"
+              : "p-2 text-on-surface-variant hover:bg-surface-container-high"
+          }`}
+          onClick={showHome}
+          title="Home"
           type="button">
-          <Home size={20} fill="currentColor" />
+          <Home size={20} fill={view === "home" ? "currentColor" : "none"} />
         </button>
         <button
-          className="flex items-center justify-center rounded-full p-2 text-on-surface-variant transition-all hover:bg-surface-container-high active:scale-90"
+          aria-label="Search"
+          className={`flex items-center justify-center rounded-full transition-all duration-150 active:scale-90 ${
+            view === "search"
+              ? "bg-secondary-container px-4 py-1 text-on-secondary-container"
+              : "p-2 text-on-surface-variant hover:bg-surface-container-high"
+          }`}
+          onClick={() => setView("search")}
+          title="Search"
           type="button">
           <Search size={20} />
         </button>
         <button
+          aria-label="History"
           className="flex items-center justify-center rounded-full p-2 text-on-surface-variant transition-all hover:bg-surface-container-high active:scale-90"
+          title="History"
           type="button">
           <History size={20} />
         </button>

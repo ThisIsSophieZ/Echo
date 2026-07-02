@@ -531,3 +531,38 @@ Verification:
 
 - `npm run build` completed successfully.
 - Plasmo's existing optional `svgo` notice remains non-blocking.
+
+### Minimal Local Search
+
+Added the first explicit, on-demand recall path without changing persistence.
+
+Behavior:
+
+- The bottom Search icon switches the side panel from Home to Search.
+- Search filters the Echo array already loaded from Dexie in real time.
+- Matching includes `triggerText`, `userThought`, `inferredThought`, `title`,
+  and `sourceApp`.
+- Search text uses Unicode NFKC normalization, lowercase comparison, and
+  whitespace-separated AND terms.
+- Results preserve the database's existing newest-first order.
+- Closing Search or pressing Home clears the query and restores Keep, filter
+  chips, and the normal list.
+- The top `+` button now also returns to Home and focuses the Keep composer.
+
+Scope:
+
+- No Dexie schema or IndexedDB migration.
+- No search dependency, fuzzy matching, ranking, vectors, or AI.
+- The current in-memory scan is intentionally sized for the prototype's
+  dozens of Echoes.
+- Pure normalization and matching live in `lib/echo-search.ts`; the side panel
+  only owns view and query state.
+
+Verification:
+
+- `npx tsc --noEmit --incremental false` completed successfully.
+- `npm test` completed successfully: 2 files, 10 tests.
+- Search tests cover Chinese substring matching, case and Unicode width
+  normalization, multi-term AND matching, and optional thought/source fields.
+- `npm run build` completed successfully.
+- Plasmo's existing optional `svgo` notice remains non-blocking.
