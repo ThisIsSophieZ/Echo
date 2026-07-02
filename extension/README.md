@@ -38,6 +38,8 @@ Two capture paths, two meanings:
 - Structured selections also keep a Markdown representation, compact preview,
   structure metrics, and a text anchor back to the source.
 - Data lives in IndexedDB (`echo-sidebar` database, `sparks` object store).
+- An unfinished Keep draft is restored from `chrome.storage.local` after the
+  side panel closes or Chrome restarts. Saving clears the draft.
 
 ## Long and structured captures
 
@@ -52,10 +54,11 @@ Long Collect items do not render their entire body in the list.
   anchor across dynamic page initialization, scrolls to the match, and briefly
   highlights it.
 
-The source locator prefers a provider message ID when one is available and
-falls back to an exact text quote and then a high-confidence fuzzy match for
-lightly edited content. Existing Echoes without capture metadata continue to
-render and use their stored text as a best-effort anchor.
+The source locator first reuses an already-open conversation tab when possible.
+It then checks provider-specific message containers for ChatGPT, Claude,
+Gemini, and Grok before falling back to a legacy message ID, exact text quote,
+and high-confidence fuzzy match. Existing Echoes without capture metadata
+continue to render and use their stored text as a best-effort anchor.
 
 ## Current recall behavior
 
@@ -75,6 +78,8 @@ The side panel is quiet by default:
   source under `## 来源片段`.
 - Copy, Pin, and Delete share a hidden top-right action group. Hovering that
   corner reveals it without reserving space in the card content.
+- Delete shows a five-second Undo action and restores the exact same Dexie
+  record when used.
 
 The previous neglect-driven resurface experiment was removed after dogfooding showed
 that opening the panel felt like receiving work. Contextual recall will be tested
@@ -90,9 +95,14 @@ The bottom Search button opens the first on-demand recall surface.
   `sourceApp`.
 - Input is normalized with Unicode NFKC, lowercased, and split on whitespace.
   Every entered term must appear somewhere in the combined searchable text.
-- Results keep the existing newest-first order.
+- Non-empty queries use explainable lexical relevance: user thoughts rank
+  above titles, inferred thoughts, source text, and source-app matches.
+  Exact phrases receive an additional boost; equal scores remain newest-first.
+- When a match comes from content the card does not normally show, the result
+  includes a compact `命中` snippet so the reason is visible.
 - Closing Search or pressing Home clears the query and restores the Keep
   composer and normal filter chips.
+- `/` opens Search when focus is not inside an editor; `Escape` returns Home.
 - Pure search matching lives in `lib/echo-search.ts` and is covered by focused
   regression tests.
 - No AI ranking, fuzzy matching, vectors, or external search dependency is
@@ -135,8 +145,11 @@ type Echo = {
         suffix?: string
       }
       provider?: {
-        attribute: "data-message-id"
-        value: string
+        provider?: "chatgpt" | "claude" | "gemini" | "grok"
+        messageId?: string
+        messageIndex?: number
+        attribute?: "data-message-id" // legacy
+        value?: string // legacy
       }
     }
   }

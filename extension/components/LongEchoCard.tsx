@@ -8,13 +8,16 @@ import {
 
 import type { Echo } from "~db/echoes"
 import { EchoCardActions } from "~components/EchoCardActions"
+import { EchoSearchMatchHint } from "~components/EchoSearchMatch"
 import { longCollectPresentation } from "~lib/echo-presentation"
+import type { EchoSearchMatch } from "~lib/echo-search"
 
 type LongEchoCardProps = {
   echo: Echo
   onDelete?: (id: string) => void
   onOpenSource?: (echo: Echo) => void
   onTogglePin?: (id: string) => void
+  searchMatch?: EchoSearchMatch
 }
 
 const iconForSource = (source?: string) => {
@@ -26,12 +29,17 @@ export const LongEchoCard = ({
   echo,
   onDelete,
   onOpenSource,
-  onTogglePin
+  onTogglePin,
+  searchMatch
 }: LongEchoCardProps) => {
   const [showMarkdown, setShowMarkdown] = useState(false)
   const presentation = longCollectPresentation(echo)
   const SourceIcon = iconForSource(echo.sourceApp)
   const isPinned = echo.status === "pinned"
+  const showSearchMatch =
+    searchMatch &&
+    searchMatch.field !== "userThought" &&
+    searchMatch.field !== "sourceApp"
 
   return (
     <article
@@ -73,6 +81,8 @@ export const LongEchoCard = ({
               {presentation.meta}
             </p>
           </div>
+
+          {showSearchMatch ? <EchoSearchMatchHint match={searchMatch} /> : null}
         </div>
 
       </div>

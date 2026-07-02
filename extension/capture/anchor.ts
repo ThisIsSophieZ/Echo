@@ -1,8 +1,11 @@
 import type {
   EchoAnchor,
-  EchoProviderAnchor,
   EchoTextQuoteAnchor
 } from "~capture/types"
+import {
+  createProviderAnchor,
+  findProviderTarget
+} from "~capture/provider-anchor"
 
 const ANCHOR_BLOCK_SELECTOR = "p, li, blockquote, td, th, pre, h1, h2, h3, h4, h5, h6"
 
@@ -32,20 +35,12 @@ const boundaryContext = (range: Range) => {
   }
 }
 
-const findProviderAnchor = (range: Range): EchoProviderAnchor | undefined => {
+const rangeStartElement = (range: Range) => {
   const startElement =
     range.startContainer instanceof Element
       ? range.startContainer
       : range.startContainer.parentElement
-  const message = startElement?.closest("[data-message-id]")
-  const value = message?.getAttribute("data-message-id")
-
-  return value
-    ? {
-        attribute: "data-message-id",
-        value
-      }
-    : undefined
+  return startElement
 }
 
 const blockTexts = (fragment: Element) =>
@@ -70,7 +65,7 @@ export const createEchoAnchor = (
       exactEnd,
       ...boundaryContext(range)
     },
-    provider: findProviderAnchor(range)
+    provider: createProviderAnchor(rangeStartElement(range))
   }
 }
 
@@ -144,8 +139,19 @@ const findBySimilarText = (quote: EchoTextQuoteAnchor) => {
 
 const findAnchorTarget = (anchor: EchoAnchor) => {
   if (anchor.provider) {
-    const providerTarget = document.querySelector(
-      `[${anchor.provider.attribute}="${CSS.escape(anchor.provider.value)}"]`
+    const legacyAttribute = anchor.provider.attribute
+    const legacyValue = anchor.provider.value
+    const legacyTarget =
+      legacyAttribute && legacyValue
+        ? document.querySelector(
+            `[${legacyAttribute}="${CSS.escape(legacyValue)}"]`
+          )
+        : null
+    if (legacyTarget) return legacyTarget
+
+    const providerTarget = findProviderTarget(
+      anchor.provider,
+      normalizeForAnchorMatch(anchor.quote.exactStart)
     )
     if (providerTarget) return providerTarget
   }

@@ -566,3 +566,91 @@ Verification:
   normalization, multi-term AND matching, and optional thought/source fields.
 - `npm run build` completed successfully.
 - Plasmo's existing optional `svgo` notice remains non-blocking.
+
+### Explainable Keyword Search Ranking
+
+Improved Search without AI, embeddings, vectors, fuzzy matching, or a new
+database index.
+
+Ranking:
+
+- All whitespace-separated terms must still match somewhere in the Echo.
+- Field weights prioritize `userThought`, capture/page title,
+  `inferredThought`, `triggerText`, then `sourceApp`.
+- An exact normalized phrase and a same-field multi-term match receive
+  additional deterministic boosts.
+- Equal scores fall back to `createdAt` descending.
+- Empty queries remain a newest-first list.
+
+Visible matches:
+
+- Search returns the strongest matching field, a human-readable label, and a
+  compact snippet around the first term.
+- Normal and long cards show the hint only when that matching field is not
+  already visible, avoiding duplicate text.
+- Structured capture titles participate in title search.
+
+Interaction:
+
+- `/` opens Search when focus is not inside an input, textarea, or editable
+  region. This avoids Chrome's reserved address-bar shortcuts.
+- `Escape` closes Search and clears the query.
+- The existing Home, close, and top `+` paths remain unchanged.
+
+Architecture:
+
+- `lib/echo-search.ts` owns normalization, ranking, tie-breaking, and snippets.
+- `components/EchoSearchMatch.tsx` owns the shared result hint.
+- Cards only decide whether their existing presentation already exposes the
+  strongest match.
+
+Verification:
+
+- `npx tsc --noEmit --incremental false` completed successfully.
+- `npm test` completed successfully: 2 files, 15 tests.
+- `npm run build` completed successfully.
+- Plasmo's existing optional `svgo` notice remains non-blocking.
+
+### Small Safety And Source-Return Improvements
+
+Added two local safety nets without changing the Echo schema:
+
+- The Keep composer restores its unfinished draft through
+  `chrome.storage.local`. Draft writes are debounced, saving clears the draft,
+  and initial hydration is guarded so an empty first render cannot erase it.
+- Delete keeps the most recent removed Echo in memory for five seconds and
+  exposes Undo. Undo writes the original record back with `Dexie.put`, retaining
+  its ID, timestamp, status, capture metadata, and list position.
+
+Improved `Open original position` as a layered locator:
+
+1. Reuse and focus an already-open tab with the same source URL; otherwise open
+   a new tab.
+2. Try provider-specific message containers for ChatGPT, Claude, Gemini, and
+   Grok.
+3. Fall back to historical `data-message-id`, exact text, and high-confidence
+   fuzzy text matching.
+
+Architecture:
+
+- `capture/provider-anchor.ts` owns provider detection, selectors, capture-time
+  message identity, and provider lookup.
+- `capture/anchor.ts` owns the shared text quote and fallback algorithm.
+- Provider metadata is nested inside the existing optional capture object, so
+  no Dexie schema migration is required.
+- Legacy provider anchors remain readable through optional `attribute` and
+  `value` fields.
+
+This separation is intentional: an LLM DOM change should require editing one
+provider selector map, not branching the entire capture or navigation flow.
+
+Verification:
+
+- `npx tsc --noEmit --incremental false` completed successfully.
+- `npm test` completed successfully: 2 files, 15 tests.
+- `npm run build` completed successfully; the existing optional `svgo` notice
+  remains non-blocking.
+- A live Grok conversation exposed 18 `data-testid` message containers
+  (`user-message` / `assistant-message`), which the Grok adapter matches.
+- ChatGPT, Claude, and Gemini still require live end-to-end retesting after the
+  unpacked extension is reloaded.

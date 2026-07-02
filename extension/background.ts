@@ -131,13 +131,43 @@ const sendAnchorWhenReady = async (tabId: number, anchor: EchoAnchor) => {
   return false
 }
 
-const openSourceAtAnchor = async (url: string, anchor: EchoAnchor) => {
-  const tab = await chrome.tabs.create({
-    active: true,
-    url
+const comparableUrl = (value: string) => {
+  const parsed = new URL(value)
+  parsed.hash = ""
+  return parsed.href
+}
+
+const findOpenSourceTab = async (url: string) => {
+  const expected = comparableUrl(url)
+  const tabs = await chrome.tabs.query({})
+  return tabs.find((tab) => {
+    if (!tab.url) return false
+    try {
+      return comparableUrl(tab.url) === expected
+    } catch {
+      return false
+    }
   })
+}
+
+const openSourceAtAnchor = async (url: string, anchor: EchoAnchor) => {
+  const existingTab = await findOpenSourceTab(url)
+  const tab =
+    existingTab ??
+    (await chrome.tabs.create({
+      active: true,
+      url
+    }))
 
   if (tab.id == null) return false
+
+  if (existingTab) {
+    await chrome.tabs.update(tab.id, { active: true })
+    if (tab.windowId != null) {
+      await chrome.windows.update(tab.windowId, { focused: true })
+    }
+  }
+
   await savePendingAnchor(tab.id, anchor)
   return sendAnchorWhenReady(tab.id, anchor)
 }

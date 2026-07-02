@@ -13,8 +13,12 @@ export type EchoCaptureFeatures = {
 }
 
 export type EchoProviderAnchor = {
-  attribute: "data-message-id"
-  value: string
+  provider?: "chatgpt" | "claude" | "gemini" | "grok"
+  messageId?: string
+  messageIndex?: number
+  // Legacy fields retained for Echoes captured before provider adapters.
+  attribute?: "data-message-id"
+  value?: string
 }
 
 export type EchoTextQuoteAnchor = {

@@ -3,14 +3,17 @@ import { Bot, Link, Sparkles } from "lucide-react"
 
 import { ExpandableText } from "~components/ExpandableText"
 import { EchoCardActions } from "~components/EchoCardActions"
+import { EchoSearchMatchHint } from "~components/EchoSearchMatch"
 import { LongEchoCard } from "~components/LongEchoCard"
 import { isLongCollect } from "~lib/echo-presentation"
+import type { EchoSearchMatch } from "~lib/echo-search"
 
 type EchoCardProps = {
   echo: Echo
   onDelete?: (id: string) => void
   onOpenSource?: (echo: Echo) => void
   onTogglePin?: (id: string) => void
+  searchMatch?: EchoSearchMatch
 }
 
 const relativeTime = (date: string) => {
@@ -41,7 +44,8 @@ export const EchoCard = ({
   echo,
   onDelete,
   onOpenSource,
-  onTogglePin
+  onTogglePin,
+  searchMatch
 }: EchoCardProps) => {
   if (isLongCollect(echo)) {
     return (
@@ -50,6 +54,7 @@ export const EchoCard = ({
         onDelete={onDelete}
         onOpenSource={onOpenSource}
         onTogglePin={onTogglePin}
+        searchMatch={searchMatch}
       />
     )
   }
@@ -57,6 +62,16 @@ export const EchoCard = ({
   const SourceIcon = iconForSource(echo.sourceApp)
   const isPinned = echo.status === "pinned"
   const displayText = echo.userThought || echo.inferredThought || echo.triggerText
+  const visiblePrimaryField = echo.userThought
+    ? "userThought"
+    : echo.inferredThought
+      ? "inferredThought"
+      : "triggerText"
+  const showSearchMatch =
+    searchMatch &&
+    searchMatch.field !== visiblePrimaryField &&
+    searchMatch.field !== "sourceApp" &&
+    !(searchMatch.field === "triggerText" && echo.userThought)
 
   return (
     <article
@@ -85,6 +100,8 @@ export const EchoCard = ({
             <ExpandableText text={echo.triggerText} tone="quote" />
           </div>
         ) : null}
+
+        {showSearchMatch ? <EchoSearchMatchHint match={searchMatch} /> : null}
 
         <div className="mt-2 flex items-center gap-2 text-on-surface-variant">
           <span className="text-label-md">{sourceLabel(echo.sourceApp)}</span>

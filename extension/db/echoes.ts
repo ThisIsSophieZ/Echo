@@ -97,6 +97,10 @@ export const deleteEcho = async (id: string) => {
   await db.sparks.delete(id)
 }
 
+export const restoreEcho = async (echo: Echo) => {
+  await db.sparks.put(echo)
+}
+
 export const addUserThought = async (id: string, userThought: string) => {
   const thought = userThought.trim()
   if (!thought) return false

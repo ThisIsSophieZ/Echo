@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { History, Home, Lightbulb, Plus, Search, Settings, X, Zap } from "lucide-react"
 
 import { EchoCard } from "~components/EchoCard"
@@ -6,11 +6,12 @@ import {
   createEcho,
   deleteEcho,
   listRecentEchoes,
+  restoreEcho,
   togglePin,
   type Echo
 } from "~db/echoes"
 import { ECHO_LIST_CHANGED_KEY, notifyEchoListChanged } from "~lib/echo-events"
-import { matchesEchoSearch } from "~lib/echo-search"
+import { searchEchoes } from "~lib/echo-search"
 import { detectSourceApp } from "~lib/source-app"
 
 import "./style.css"
@@ -22,6 +23,8 @@ type PageContext = {
 }
 
 type SidebarView = "home" | "search"
+const KEEP_DRAFT_KEY = "echo_keep_draft"
+const UNDO_DELETE_MS = 5000
 
 const getCurrentTab = async () => {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
@@ -64,16 +67,27 @@ const SidePanel = () => {
   const [filter, setFilter] = useState<"all" | "insights" | "pinned">("all")
   const [view, setView] = useState<SidebarView>("home")
   const [searchQuery, setSearchQuery] = useState("")
+  const [deletedEcho, setDeletedEcho] = useState<Echo | null>(null)
+  const [isDraftLoaded, setIsDraftLoaded] = useState(false)
+  const undoTimer = useRef<number | null>(null)
 
   const sourceApp = useMemo(() => detectSourceApp(context.url), [context.url])
+  const searchResults = useMemo(
+    () => searchEchoes(echoes, searchQuery),
+    [echoes, searchQuery]
+  )
   const visibleEchoes = useMemo(() => {
     if (view === "search") {
-      return echoes.filter((echo) => matchesEchoSearch(echo, searchQuery))
+      return searchResults.map((result) => result.echo)
     }
 
     if (filter === "pinned") return echoes.filter((echo) => echo.status === "pinned")
     return echoes
-  }, [echoes, filter, searchQuery, view])
+  }, [echoes, filter, searchResults, view])
+  const searchMatches = useMemo(
+    () => new Map(searchResults.map((result) => [result.echo.id, result.match])),
+    [searchResults]
+  )
 
   const showHome = () => {
     setView("home")
@@ -95,9 +109,57 @@ const SidePanel = () => {
     ;(async () => {
       const ctx = await getPageContext()
       setContext(ctx)
+      const stored = await chrome.storage.local.get(KEEP_DRAFT_KEY)
+      setThought(String(stored[KEEP_DRAFT_KEY] ?? ""))
+      setIsDraftLoaded(true)
       await refreshEchoes()
     })()
   }, [])
+
+  useEffect(() => {
+    if (!isDraftLoaded) return
+
+    const timer = window.setTimeout(() => {
+      if (thought) {
+        chrome.storage.local.set({ [KEEP_DRAFT_KEY]: thought })
+      } else {
+        chrome.storage.local.remove(KEEP_DRAFT_KEY)
+      }
+    }, 250)
+
+    return () => window.clearTimeout(timer)
+  }, [isDraftLoaded, thought])
+
+  useEffect(
+    () => () => {
+      if (undoTimer.current != null) window.clearTimeout(undoTimer.current)
+    },
+    []
+  )
+
+  useEffect(() => {
+    const handleSearchShortcut = (event: KeyboardEvent) => {
+      const target = event.target
+      const isEditing =
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        (target instanceof HTMLElement && target.isContentEditable)
+
+      if (event.key === "/" && !isEditing) {
+        event.preventDefault()
+        setView("search")
+        return
+      }
+
+      if (event.key === "Escape" && view === "search") {
+        event.preventDefault()
+        showHome()
+      }
+    }
+
+    window.addEventListener("keydown", handleSearchShortcut)
+    return () => window.removeEventListener("keydown", handleSearchShortcut)
+  }, [view])
 
   useEffect(() => {
     const handleEchoListChanged = (
@@ -128,13 +190,34 @@ const SidePanel = () => {
     })
 
     setThought("")
+    await chrome.storage.local.remove(KEEP_DRAFT_KEY)
     await refreshEchoes()
     await notifyEchoListChanged()
     setIsSaving(false)
   }
 
   const handleDeleteEcho = async (id: string) => {
+    const echo = echoes.find((item) => item.id === id)
+    if (!echo) return
+
     await deleteEcho(id)
+    setDeletedEcho(echo)
+    if (undoTimer.current != null) window.clearTimeout(undoTimer.current)
+    undoTimer.current = window.setTimeout(() => {
+      setDeletedEcho(null)
+      undoTimer.current = null
+    }, UNDO_DELETE_MS)
+    await refreshEchoes()
+    await notifyEchoListChanged()
+  }
+
+  const handleUndoDelete = async () => {
+    if (!deletedEcho) return
+
+    if (undoTimer.current != null) window.clearTimeout(undoTimer.current)
+    undoTimer.current = null
+    await restoreEcho(deletedEcho)
+    setDeletedEcho(null)
     await refreshEchoes()
     await notifyEchoListChanged()
   }
@@ -276,6 +359,11 @@ const SidePanel = () => {
                 onDelete={handleDeleteEcho}
                 onOpenSource={handleOpenSource}
                 onTogglePin={handleTogglePin}
+                searchMatch={
+                  view === "search" && searchQuery.trim()
+                    ? searchMatches.get(echo.id)
+                    : undefined
+                }
               />
             ))
           ) : (
@@ -293,6 +381,20 @@ const SidePanel = () => {
           </p>
         </div>
       </main>
+
+      {deletedEcho ? (
+        <div
+          className="fixed bottom-[68px] left-margin-side right-margin-side z-[60] flex items-center justify-between gap-3 rounded-md bg-on-surface px-3 py-2 text-on-primary shadow-lg"
+          role="status">
+          <span className="text-body-sm">Echo deleted</span>
+          <button
+            className="text-label-md font-semibold text-primary-fixed hover:underline"
+            onClick={handleUndoDelete}
+            type="button">
+            Undo
+          </button>
+        </div>
+      ) : null}
 
       <nav className="fixed bottom-0 left-0 z-50 flex h-[56px] w-full items-center justify-around border-t border-outline-variant bg-surface px-gutter">
         <button
