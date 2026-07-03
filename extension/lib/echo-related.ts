@@ -132,6 +132,17 @@ const STOP_CJK = new Set([
   "了的",
   "着的",
   "的话",
+  "是在",
+  "的是",
+  "也是",
+  "只是",
+  "又是",
+  "正是",
+  "却是",
+  "都是",
+  "更是",
+  "像是",
+  "有所",
   "一下",
   "一点",
   "一种",
@@ -207,11 +218,18 @@ const STOP_CJK = new Set([
   "方式"
 ])
 
+// 只在「选区 → query」侧过滤；语料分词保留，避免 Echo 里真有「还给用户」时完全失配
+const STOP_QUERY_CJK = new Set(["还给"])
+
 const isCjkStopToken = (token: string) => {
   if (STOP_CJK.has(token)) return true
   // 「做的事」等分词边界常产出「做的」类三字碎片
   if (token.length === 3 && /[的了着]$/.test(token)) {
     return STOP_CJK.has(token.slice(0, 2))
+  }
+  // Segmenter 常把「…是在 / …的是」切成无实义二字连接词
+  if (token.length === 2 && token[1] === "是") {
+    return "在而也都还就又才便既仍却更似只既".includes(token[0])
   }
   return false
 }
@@ -274,7 +292,8 @@ const tokenize = (value: string) => {
   return tokens
 }
 
-export const relatedTokens = (value: string) => [...new Set(tokenize(value))]
+export const relatedTokens = (value: string) =>
+  [...new Set(tokenize(value))].filter((token) => !STOP_QUERY_CJK.has(token))
 
 const fieldText = (echo: Echo, field: EchoSearchField) => {
   if (field === "title") {

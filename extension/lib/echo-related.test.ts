@@ -48,9 +48,23 @@ describe("Echo related selection", () => {
         "一个",
         "是不是",
         "咱们",
-        "好像"
+        "好像",
+        "是在",
+        "的是"
       ])
     )
+  })
+
+  it("drops borderline query tokens like 还给 while keeping corpus tokens", () => {
+    const query = relatedTokens("把钱还给用户做二次确认")
+    expect(query).not.toContain("还给")
+
+    const analysis = analyzeRelatedEchoes(
+      [echo({ userThought: "记得把钱还给借款人" })],
+      "把钱还给用户做二次确认"
+    )
+    expect(analysis.queryTokens).not.toContain("还给")
+    expect(analysis.scannedCount).toBe(1)
   })
 
   it("finds an explainable Chinese overlap", () => {

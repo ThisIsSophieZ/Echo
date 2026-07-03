@@ -3,7 +3,6 @@ import { History, Home, Lightbulb, Plus, Search, Settings, X, Zap } from "lucide
 
 import { EchoCard } from "~components/EchoCard"
 import { ProbeDebugPanel } from "~components/ProbeDebugPanel"
-import { RelatedEchoSection } from "~components/RelatedEchoSection"
 import {
   addUserThought,
   createEcho,
@@ -97,6 +96,31 @@ const SidePanel = () => {
     () => analyzeRelatedEchoes(echoes, selectedText, 3, context.url),
     [context.url, echoes, selectedText]
   )
+  const relatedById = useMemo(
+    () => new Map(relatedAnalysis.results.map((result) => [result.echo.id, result])),
+    [relatedAnalysis.results]
+  )
+  const relatedSummary = useMemo(() => {
+    const strong = relatedAnalysis.results.filter(
+      (result) => result.strength === "strong"
+    ).length
+    const possible = relatedAnalysis.results.length - strong
+    return { strong, possible }
+  }, [relatedAnalysis.results])
+  const listEchoes = useMemo(() => {
+    if (
+      view !== "home" ||
+      !selectedText.trim() ||
+      !relatedAnalysis.results.length
+    ) {
+      return visibleEchoes
+    }
+
+    const relatedIds = new Set(relatedAnalysis.results.map((result) => result.echo.id))
+    const related = relatedAnalysis.results.map((result) => result.echo)
+    const rest = visibleEchoes.filter((echo) => !relatedIds.has(echo.id))
+    return [...related, ...rest]
+  }, [relatedAnalysis.results, selectedText, view, visibleEchoes])
 
   const showHome = () => {
     setView("home")
@@ -299,8 +323,9 @@ const SidePanel = () => {
           </button>
           <button
             aria-label="Settings"
-            className="rounded-full p-2 text-secondary transition-colors hover:bg-secondary-container active:scale-95"
-            title="Settings"
+            className="cursor-not-allowed rounded-full p-2 text-on-surface-variant/40"
+            disabled
+            title="Settings（即将推出）"
             type="button">
             <Settings size={20} />
           </button>
@@ -395,34 +420,48 @@ const SidePanel = () => {
 
         {view === "home" ? <ProbeDebugPanel analysis={relatedAnalysis} /> : null}
 
-        {view === "home" && relatedAnalysis.results.length ? (
-          <RelatedEchoSection
-            key={selectedText}
-            results={relatedAnalysis.results}
-            onAddThought={handleAddThought}
-            onDelete={handleDeleteEcho}
-            onOpenSource={handleOpenSource}
-            onTogglePin={handleTogglePin}
-          />
+        {view === "home" && relatedAnalysis.results.length && selectedText.trim() ? (
+          <p className="mb-2 text-label-sm text-on-surface-variant">
+            与选区相关 · {relatedAnalysis.results.length} 条
+            {relatedSummary.strong || relatedSummary.possible ? (
+              <>
+                {" "}
+                （
+                {[
+                  relatedSummary.strong ? `${relatedSummary.strong} 高度相关` : null,
+                  relatedSummary.possible ? `${relatedSummary.possible} 可能相关` : null
+                ]
+                  .filter(Boolean)
+                  .join("、")}
+                ）
+              </>
+            ) : null}
+          </p>
         ) : null}
 
         <div className="space-y-stack-sm">
-          {visibleEchoes.length ? (
-            visibleEchoes.map((echo) => (
-              <EchoCard
-                key={echo.id}
-                echo={echo}
-                onAddThought={handleAddThought}
-                onDelete={handleDeleteEcho}
-                onOpenSource={handleOpenSource}
-                onTogglePin={handleTogglePin}
-                searchMatch={
-                  view === "search" && searchQuery.trim()
-                    ? searchMatches.get(echo.id)
-                    : undefined
-                }
-              />
-            ))
+          {listEchoes.length ? (
+            listEchoes.map((echo) => {
+              const related = view === "home" ? relatedById.get(echo.id) : undefined
+
+              return (
+                <EchoCard
+                  key={echo.id}
+                  echo={echo}
+                  onAddThought={handleAddThought}
+                  onDelete={handleDeleteEcho}
+                  onOpenSource={handleOpenSource}
+                  onTogglePin={handleTogglePin}
+                  relatedReason={related?.reason}
+                  relatedStrength={related?.strength}
+                  searchMatch={
+                    view === "search" && searchQuery.trim()
+                      ? searchMatches.get(echo.id)
+                      : related?.match
+                  }
+                />
+              )
+            })
           ) : (
             <div className="rounded-lg border border-dashed border-outline-variant bg-white px-4 py-8 text-center text-body-md text-on-surface-variant">
               {view === "search" && searchQuery.trim()
@@ -480,8 +519,9 @@ const SidePanel = () => {
         </button>
         <button
           aria-label="History"
-          className="flex items-center justify-center rounded-full p-2 text-on-surface-variant transition-all hover:bg-surface-container-high active:scale-90"
-          title="History"
+          className="flex cursor-not-allowed items-center justify-center rounded-full p-2 text-on-surface-variant/40"
+          disabled
+          title="History（即将推出）"
           type="button">
           <History size={20} />
         </button>

@@ -10,6 +10,14 @@ import {
 } from "~capture/title-resolver"
 import type { SelectionCapture } from "~capture/types"
 
+export const getSelectionPlainText = (): string | null => {
+  const selection = window.getSelection()
+  if (!selection || selection.isCollapsed || selection.rangeCount === 0) return null
+
+  const plainText = selection.toString().replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim()
+  return plainText || null
+}
+
 export const getSelectionCapture = async (): Promise<SelectionCapture | null> => {
   const selection = window.getSelection()
   if (!selection || selection.isCollapsed || selection.rangeCount === 0) return null

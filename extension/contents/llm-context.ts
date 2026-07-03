@@ -1,7 +1,10 @@
 import type { PlasmoCSConfig } from "plasmo"
 
 import { locateEchoAnchor } from "~capture/anchor"
-import { getSelectionCapture } from "~capture/selection"
+import {
+  getSelectionCapture,
+  getSelectionPlainText
+} from "~capture/selection"
 import type { SelectionCapture } from "~capture/types"
 
 export const config: PlasmoCSConfig = {
@@ -40,14 +43,14 @@ const sourceLabel = (source?: string) => {
   return "Browser"
 }
 
-const publishSelectionContext = (selectionCapture: SelectionCapture | null) => {
+const publishSelectionContext = (plainText: string | null) => {
   const runtime = globalThis.chrome?.runtime
   if (!runtime?.sendMessage) return
 
   runtime
     .sendMessage({
       type: "echo:selection-context",
-      text: selectionCapture?.plainText ?? "",
+      text: plainText ?? "",
       url: location.href
     })
     .catch(() => {})
@@ -255,21 +258,34 @@ document.addEventListener("mouseup", (event) => {
   if (addButton && event.target === addButton) return
 
   setTimeout(async () => {
-    const selectionCapture = await getSelectionCapture()
-    if (!selectionCapture) {
-      hideAddButton()
-      publishSelectionContext(null)
-      return
-    }
+    try {
+      const plainText = getSelectionPlainText()
+      if (!plainText) {
+        hideAddButton()
+        publishSelectionContext(null)
+        return
+      }
 
-    publishSelectionContext(selectionCapture)
-    const rect = getSelectionRect()
-    if (!rect) {
-      hideAddButton()
-      return
-    }
+      publishSelectionContext(plainText)
 
-    showAddButton(rect, selectionCapture)
+      const selectionCapture = await getSelectionCapture()
+      if (!selectionCapture) {
+        hideAddButton()
+        return
+      }
+
+      const rect = getSelectionRect()
+      if (!rect) {
+        hideAddButton()
+        return
+      }
+
+      showAddButton(rect, selectionCapture)
+    } catch {
+      const plainText = getSelectionPlainText()
+      publishSelectionContext(plainText)
+      hideAddButton()
+    }
   }, 10)
 })
 

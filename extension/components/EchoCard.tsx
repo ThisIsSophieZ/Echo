@@ -8,6 +8,7 @@ import { EchoCardActions } from "~components/EchoCardActions"
 import { EchoSearchMatchHint } from "~components/EchoSearchMatch"
 import { LongEchoCard } from "~components/LongEchoCard"
 import { isLongCollect } from "~lib/echo-presentation"
+import type { RelatedStrength } from "~lib/echo-related"
 import type { EchoSearchMatch } from "~lib/echo-search"
 
 type EchoCardProps = {
@@ -17,6 +18,8 @@ type EchoCardProps = {
   onOpenSource?: (echo: Echo) => void
   onTogglePin?: (id: string) => void
   searchMatch?: EchoSearchMatch
+  relatedStrength?: RelatedStrength
+  relatedReason?: string
 }
 
 const relativeTime = (date: string) => {
@@ -49,7 +52,9 @@ export const EchoCard = ({
   onDelete,
   onOpenSource,
   onTogglePin,
-  searchMatch
+  searchMatch,
+  relatedStrength,
+  relatedReason
 }: EchoCardProps) => {
   const [isAddingThought, setIsAddingThought] = useState(false)
 
@@ -61,6 +66,8 @@ export const EchoCard = ({
         onDelete={onDelete}
         onOpenSource={onOpenSource}
         onTogglePin={onTogglePin}
+        relatedReason={relatedReason}
+        relatedStrength={relatedStrength}
         searchMatch={searchMatch}
       />
     )
@@ -68,6 +75,8 @@ export const EchoCard = ({
 
   const SourceIcon = iconForSource(echo.sourceApp)
   const isPinned = echo.status === "pinned"
+  const isStrongRelated = relatedStrength === "strong"
+  const isPossibleRelated = relatedStrength === "possible"
   const displayText = echo.userThought || echo.inferredThought || echo.triggerText
   const visiblePrimaryField = echo.userThought
     ? "userThought"
@@ -83,7 +92,13 @@ export const EchoCard = ({
   return (
     <article
       className={`echo-card group relative flex cursor-pointer items-start gap-3 rounded-lg border bg-white p-3 transition-colors hover:bg-[#F1F3F4] ${
-        isPinned ? "border-primary/50 bg-primary-fixed/10" : "border-[#E3E3E3]"
+        isPinned
+          ? "border-primary/50 bg-primary-fixed/10"
+          : isStrongRelated
+            ? "border-primary/35 bg-[#E8F0FE]"
+            : isPossibleRelated
+              ? "border-[#E3E3E3] border-l-4 border-l-[#F9AB00] bg-[#FFFBF0]"
+              : "border-[#E3E3E3]"
       }`}>
       <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
         echo.sourceApp === "gemini"
@@ -116,6 +131,22 @@ export const EchoCard = ({
         ) : null}
 
         {showSearchMatch ? <EchoSearchMatchHint match={searchMatch} /> : null}
+
+        {relatedReason ? (
+          <p
+            className={`mt-2 flex items-start gap-1 text-label-sm ${
+              isStrongRelated
+                ? "text-primary"
+                : isPossibleRelated
+                  ? "text-[#B06000]"
+                  : "text-on-surface-variant"
+            }`}>
+            <Sparkles className="mt-0.5 shrink-0" size={12} />
+            <span className="min-w-0 break-words">
+              {isStrongRelated ? "高度相关" : "可能相关"} · {relatedReason}
+            </span>
+          </p>
+        ) : null}
 
         {isAddingThought && onAddThought ? (
           <AddThoughtEditor

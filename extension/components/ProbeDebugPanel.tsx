@@ -73,7 +73,13 @@ export const ProbeDebugPanel = ({ analysis }: ProbeDebugPanelProps) => {
             </div>
           </>
         ) : (
-          <p>保持 Sidebar 打开，在支持的 LLM 页面划选文字。</p>
+          <div className="space-y-1">
+            <p>保持 Sidebar 打开，在支持的 LLM 页面划选文字。</p>
+            <p className="text-on-surface-variant/80">
+              若划词无响应，先刷新 LLM 标签页（扩展 reload 后 content script
+              可能过期）。
+            </p>
+          </div>
         )}
       </div>
     </details>

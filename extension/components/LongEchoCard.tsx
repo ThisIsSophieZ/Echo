@@ -11,6 +11,7 @@ import { AddThoughtEditor } from "~components/AddThoughtEditor"
 import { EchoCardActions } from "~components/EchoCardActions"
 import { EchoSearchMatchHint } from "~components/EchoSearchMatch"
 import { longCollectPresentation } from "~lib/echo-presentation"
+import type { RelatedStrength } from "~lib/echo-related"
 import type { EchoSearchMatch } from "~lib/echo-search"
 import { SearchHighlight } from "~components/SearchHighlight"
 
@@ -21,6 +22,8 @@ type LongEchoCardProps = {
   onOpenSource?: (echo: Echo) => void
   onTogglePin?: (id: string) => void
   searchMatch?: EchoSearchMatch
+  relatedStrength?: RelatedStrength
+  relatedReason?: string
 }
 
 const iconForSource = (source?: string) => {
@@ -34,13 +37,17 @@ export const LongEchoCard = ({
   onDelete,
   onOpenSource,
   onTogglePin,
-  searchMatch
+  searchMatch,
+  relatedStrength,
+  relatedReason
 }: LongEchoCardProps) => {
   const [showMarkdown, setShowMarkdown] = useState(false)
   const [isAddingThought, setIsAddingThought] = useState(false)
   const presentation = longCollectPresentation(echo)
   const SourceIcon = iconForSource(echo.sourceApp)
   const isPinned = echo.status === "pinned"
+  const isStrongRelated = relatedStrength === "strong"
+  const isPossibleRelated = relatedStrength === "possible"
   const showSearchMatch =
     searchMatch &&
     searchMatch.field !== "userThought" &&
@@ -49,7 +56,13 @@ export const LongEchoCard = ({
   return (
     <article
       className={`echo-card group relative rounded-lg border bg-white p-3 transition-colors hover:bg-[#F1F3F4] ${
-        isPinned ? "border-primary/50 bg-primary-fixed/10" : "border-[#E3E3E3]"
+        isPinned
+          ? "border-primary/50 bg-primary-fixed/10"
+          : isStrongRelated
+            ? "border-primary/35 bg-[#E8F0FE]"
+            : isPossibleRelated
+              ? "border-[#E3E3E3] border-l-4 border-l-[#F9AB00] bg-[#FFFBF0]"
+              : "border-[#E3E3E3]"
       }`}>
       <div className="flex items-start gap-3">
         <div
@@ -99,6 +112,22 @@ export const LongEchoCard = ({
           </div>
 
           {showSearchMatch ? <EchoSearchMatchHint match={searchMatch} /> : null}
+
+          {relatedReason ? (
+            <p
+              className={`mt-2 flex items-start gap-1 text-label-sm ${
+                isStrongRelated
+                  ? "text-primary"
+                  : isPossibleRelated
+                    ? "text-[#B06000]"
+                    : "text-on-surface-variant"
+              }`}>
+              <Sparkles className="mt-0.5 shrink-0" size={12} />
+              <span className="min-w-0 break-words">
+                {isStrongRelated ? "高度相关" : "可能相关"} · {relatedReason}
+              </span>
+            </p>
+          ) : null}
 
           {isAddingThought && onAddThought ? (
             <AddThoughtEditor
