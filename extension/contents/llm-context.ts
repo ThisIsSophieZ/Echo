@@ -40,6 +40,19 @@ const sourceLabel = (source?: string) => {
   return "Browser"
 }
 
+const publishSelectionContext = (selectionCapture: SelectionCapture | null) => {
+  const runtime = globalThis.chrome?.runtime
+  if (!runtime?.sendMessage) return
+
+  runtime
+    .sendMessage({
+      type: "echo:selection-context",
+      text: selectionCapture?.plainText ?? "",
+      url: location.href
+    })
+    .catch(() => {})
+}
+
 const getSelectionRect = () => {
   const selection = window.getSelection()
   if (!selection || selection.rangeCount === 0) return null
@@ -210,18 +223,21 @@ const showSavedToast = (sourceApp?: string) => {
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message?.type === "echo:get-page-context") {
-    const selectionCapture = getSelectionCapture()
-    sendResponse({
-      title: document.title,
-      url: location.href,
-      selection: selectionCapture?.plainText ?? ""
-    })
-    return
+    getSelectionCapture().then((selectionCapture) =>
+      sendResponse({
+        title: document.title,
+        url: location.href,
+        selection: selectionCapture?.plainText ?? ""
+      })
+    )
+    return true
   }
 
   if (message?.type === "echo:get-selection-capture") {
-    sendResponse({ selectionCapture: getSelectionCapture() })
-    return
+    getSelectionCapture().then((selectionCapture) =>
+      sendResponse({ selectionCapture })
+    )
+    return true
   }
 
   if (message?.type === "echo:show-saved") {
@@ -238,13 +254,15 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 document.addEventListener("mouseup", (event) => {
   if (addButton && event.target === addButton) return
 
-  setTimeout(() => {
-    const selectionCapture = getSelectionCapture()
+  setTimeout(async () => {
+    const selectionCapture = await getSelectionCapture()
     if (!selectionCapture) {
       hideAddButton()
+      publishSelectionContext(null)
       return
     }
 
+    publishSelectionContext(selectionCapture)
     const rect = getSelectionRect()
     if (!rect) {
       hideAddButton()

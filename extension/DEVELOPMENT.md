@@ -694,3 +694,99 @@ Verification:
   remains non-blocking.
 - Source search confirmed that the removed page input and runtime message paths
   remain only as historical documentation references.
+
+### Phase 2 Reflection Probe v0
+
+Started Phase 2 as a deliberately small, falsifiable selection-recall
+experiment.
+
+Context flow:
+
+- `contents/llm-context.ts` publishes `echo:selection-context` after a user
+  selection changes on a supported LLM page.
+- The message contains only the temporary plain text and source URL. It is not
+  written to storage and does not leave the browser.
+- An open side panel listens for the message; when no panel is listening, the
+  content script silently continues.
+- Clearing the page selection clears the temporary recall context.
+
+Relevance:
+
+- `lib/echo-related.ts` owns normalization, English word extraction, Chinese
+  bigrams, deterministic field weights, thresholding, explanations, and the
+  three-result limit.
+- `userThought` ranks above title, `inferredThought`, and `triggerText`.
+- Weak one-token overlap is suppressed.
+- An Echo whose normalized source exactly equals the selection is excluded to
+  prevent self-recall.
+- No AI, embeddings, vector index, network request, or schema migration.
+
+Presentation:
+
+- `components/RelatedEchoSection.tsx` renders one unframed, collapsed row above
+  the normal list only when results clear the threshold.
+- Expanding is always explicit and shows the existing Echo cards plus a
+  human-readable match reason.
+- A changed selection remounts the section in its collapsed state.
+- Existing Copy, Pin, Delete, Open original, and Add thought actions are reused.
+
+Verification:
+
+- `npx tsc --noEmit --incremental false` completed successfully.
+- `npm test` completed successfully: 3 files, 20 tests.
+- Focused tests cover English and Chinese tokenization, explainable overlap,
+  weak-match suppression, exact-source exclusion, ranking, and result limits.
+
+### Anchor v2: Persistent Message Identity
+
+Replaced capture-time DOM ordering with persistent, layered message identity.
+New anchors never write or read `messageIndex`.
+
+Capture:
+
+- A provider-native attribute is stored only when its value is unique in the
+  current document. Candidate attributes include `data-message-id`,
+  `data-turn-id`, and provider-specific stable IDs.
+- Message text is normalized with Unicode NFKC, zero-width removal, emoji
+  removal, NBSP replacement, and whitespace compaction.
+- Web Crypto SHA-256 hashes the full normalized message plus its first and last
+  320 characters. The first 12 digest bytes are stored as 24 hex characters.
+- Previous and next message fingerprints, role, and capture time are stored
+  when available.
+- `capture.anchor.version` is `2`; the outer Echo/Dexie schema remains
+  unchanged.
+
+Lookup order:
+
+1. Unique provider-native ID.
+2. Exact full-message fingerprint.
+3. Matching head/tail fingerprints with at most 8% length drift.
+4. Neighboring fingerprints to disambiguate repeated messages.
+5. Exact provider-container text.
+6. Shared `exactStart`, `exactEnd`, `prefix`, and `suffix` scoring.
+7. Historical high-confidence token similarity fallback.
+
+Long-context behavior:
+
+- If no rendered message matches, the provider adapter moves its scroll root
+  upward every second lookup pass and retries as virtualized history loads.
+- Lookup allows up to 80 passes at 300 ms intervals.
+- Once the message is identified, the locator selects the matching paragraph
+  inside that message before scrolling and highlighting.
+- Failure still opens the correct conversation and returns `found: false`;
+  low-confidence candidates are never forced.
+
+Compatibility:
+
+- Existing `messageId`, `attribute`, and `value` anchors remain readable.
+- Historical runtime `messageIndex` data is ignored.
+- No IndexedDB migration or new dependency is required.
+
+Verification:
+
+- `npx tsc --noEmit --incremental false` completed successfully.
+- `npm test` completed successfully: 4 files, 24 tests.
+- Fingerprint tests cover canonical normalization, deterministic truncated
+  SHA-256 output, changed-content rejection, and head/tail length tolerance.
+- `npm run build` completed successfully; the existing optional `svgo` notice
+  remains non-blocking.

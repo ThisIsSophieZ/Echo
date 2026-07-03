@@ -12,11 +12,28 @@ export type EchoCaptureFeatures = {
   codeBlockCount: number
 }
 
+export type EchoProviderName = "chatgpt" | "claude" | "gemini" | "grok"
+
+export type EchoMessageFingerprint = {
+  fullHash: string
+  headHash: string
+  tailHash: string
+  textLength: number
+}
+
 export type EchoProviderAnchor = {
-  provider?: "chatgpt" | "claude" | "gemini" | "grok"
+  provider?: EchoProviderName
+  nativeId?: {
+    attribute: string
+    value: string
+  }
+  fingerprint?: EchoMessageFingerprint
+  previousFingerprint?: EchoMessageFingerprint
+  nextFingerprint?: EchoMessageFingerprint
+  role?: "user" | "assistant"
+  capturedAt?: string
+  // Legacy fields retained for Echoes captured before Anchor v2.
   messageId?: string
-  messageIndex?: number
-  // Legacy fields retained for Echoes captured before provider adapters.
   attribute?: "data-message-id"
   value?: string
 }
@@ -29,6 +46,7 @@ export type EchoTextQuoteAnchor = {
 }
 
 export type EchoAnchor = {
+  version?: 2
   quote: EchoTextQuoteAnchor
   provider?: EchoProviderAnchor
 }

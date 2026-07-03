@@ -56,10 +56,18 @@ Long Collect items do not render their entire body in the list.
   highlights it.
 
 The source locator first reuses an already-open conversation tab when possible.
-It then checks provider-specific message containers for ChatGPT, Claude,
-Gemini, and Grok before falling back to a legacy message ID, exact text quote,
-and high-confidence fuzzy match. Existing Echoes without capture metadata
-continue to render and use their stored text as a best-effort anchor.
+New Anchor v2 captures then use, in order:
+
+1. A provider-native ID only when it is unique in the page.
+2. A normalized SHA-256 message fingerprint, with head/tail fingerprints and
+   neighboring-message fingerprints for disambiguation.
+3. `prefix + exact + suffix` text context inside the matched message.
+4. A high-confidence text fallback for historical Echoes.
+
+When a long conversation has virtualized older messages, the provider adapter
+progressively scrolls upward and retries as more history enters the DOM.
+`messageIndex` is not written or used by Anchor v2. Existing Echoes without v2
+metadata remain readable through the legacy ID and text fallbacks.
 
 ## Current recall behavior
 
@@ -111,6 +119,30 @@ The bottom Search button opens the first on-demand recall surface.
 - No AI ranking, fuzzy matching, vectors, or external search dependency is
   included in this MVP.
 
+## Phase 2: Reflection Probe v0
+
+The first Reflection Layer experiment is selection-driven and quiet by
+default:
+
+- Selecting text on a supported LLM page sends that temporary context only to
+  an already-open extension surface.
+- Relevance is calculated locally against the Echoes already loaded from
+  Dexie. The selection is not stored and no network request is made.
+- If no result clears the conservative threshold, the sidebar does not change.
+- If results exist, Home shows one collapsed line:
+  `找到 N 条相关 Echo`.
+- Nothing expands until the user clicks. Expansion shows at most three Echoes
+  with an explanation of the matched field and terms.
+- A new selection resets the section to collapsed.
+
+The v0 matcher uses English words, Chinese bigrams, deterministic field
+weights, phrase boosts, and a minimum score. It prefers `userThought`, then
+titles, inferred thoughts, and source text. It deliberately excludes an Echo
+whose source text exactly equals the current selection.
+
+This probe does not add embeddings, vectors, page-wide context, automatic
+sidebar opening, feedback queues, or a Dexie schema migration.
+
 ## Echo data shape (full)
 
 ```ts
@@ -141,6 +173,7 @@ type Echo = {
       codeBlockCount: number
     }
     anchor: {
+      version?: 2
       quote: {
         exactStart: string
         exactEnd?: string
@@ -149,8 +182,21 @@ type Echo = {
       }
       provider?: {
         provider?: "chatgpt" | "claude" | "gemini" | "grok"
-        messageId?: string
-        messageIndex?: number
+        nativeId?: {
+          attribute: string
+          value: string
+        }
+        fingerprint?: {
+          fullHash: string
+          headHash: string
+          tailHash: string
+          textLength: number
+        }
+        previousFingerprint?: EchoMessageFingerprint
+        nextFingerprint?: EchoMessageFingerprint
+        role?: "user" | "assistant"
+        capturedAt?: string
+        messageId?: string // legacy
         attribute?: "data-message-id" // legacy
         value?: string // legacy
       }

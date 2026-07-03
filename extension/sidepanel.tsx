@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { History, Home, Lightbulb, Plus, Search, Settings, X, Zap } from "lucide-react"
 
 import { EchoCard } from "~components/EchoCard"
+import { RelatedEchoSection } from "~components/RelatedEchoSection"
 import {
   addUserThought,
   createEcho,
@@ -12,6 +13,7 @@ import {
   type Echo
 } from "~db/echoes"
 import { ECHO_LIST_CHANGED_KEY, notifyEchoListChanged } from "~lib/echo-events"
+import { findRelatedEchoes } from "~lib/echo-related"
 import { searchEchoes } from "~lib/echo-search"
 import { detectSourceApp } from "~lib/source-app"
 
@@ -70,6 +72,7 @@ const SidePanel = () => {
   const [searchQuery, setSearchQuery] = useState("")
   const [deletedEcho, setDeletedEcho] = useState<Echo | null>(null)
   const [isDraftLoaded, setIsDraftLoaded] = useState(false)
+  const [selectedText, setSelectedText] = useState("")
   const undoTimer = useRef<number | null>(null)
 
   const sourceApp = useMemo(() => detectSourceApp(context.url), [context.url])
@@ -88,6 +91,10 @@ const SidePanel = () => {
   const searchMatches = useMemo(
     () => new Map(searchResults.map((result) => [result.echo.id, result.match])),
     [searchResults]
+  )
+  const relatedEchoes = useMemo(
+    () => findRelatedEchoes(echoes, selectedText),
+    [echoes, selectedText]
   )
 
   const showHome = () => {
@@ -110,11 +117,35 @@ const SidePanel = () => {
     ;(async () => {
       const ctx = await getPageContext()
       setContext(ctx)
+      setSelectedText(ctx.selection ?? "")
       const stored = await chrome.storage.local.get(KEEP_DRAFT_KEY)
       setThought(String(stored[KEEP_DRAFT_KEY] ?? ""))
       setIsDraftLoaded(true)
       await refreshEchoes()
     })()
+  }, [])
+
+  useEffect(() => {
+    const handleSelectionContext = (
+      message: unknown,
+      sender: chrome.runtime.MessageSender
+    ) => {
+      if (
+        typeof message !== "object" ||
+        message == null ||
+        !("type" in message) ||
+        message.type !== "echo:selection-context"
+      ) {
+        return
+      }
+      if (sender.tab && sender.tab.active === false) return
+
+      const text = "text" in message ? String(message.text ?? "") : ""
+      setSelectedText(text.trim())
+    }
+
+    chrome.runtime.onMessage.addListener(handleSelectionContext)
+    return () => chrome.runtime.onMessage.removeListener(handleSelectionContext)
   }, [])
 
   useEffect(() => {
@@ -357,6 +388,17 @@ const SidePanel = () => {
               </button>
             ))}
           </div>
+        ) : null}
+
+        {view === "home" && relatedEchoes.length ? (
+          <RelatedEchoSection
+            key={selectedText}
+            results={relatedEchoes}
+            onAddThought={handleAddThought}
+            onDelete={handleDeleteEcho}
+            onOpenSource={handleOpenSource}
+            onTogglePin={handleTogglePin}
+          />
         ) : null}
 
         <div className="space-y-stack-sm">

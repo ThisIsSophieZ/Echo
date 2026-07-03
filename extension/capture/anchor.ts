@@ -4,7 +4,8 @@ import type {
 } from "~capture/types"
 import {
   createProviderAnchor,
-  findProviderTarget
+  findProviderTarget,
+  loadOlderProviderMessages
 } from "~capture/provider-anchor"
 
 const ANCHOR_BLOCK_SELECTOR = "p, li, blockquote, td, th, pre, h1, h2, h3, h4, h5, h6"
@@ -52,21 +53,24 @@ export const createEchoAnchor = (
   range: Range,
   fragment: Element,
   plainText: string
-): EchoAnchor => {
+): Promise<EchoAnchor> => {
   const blocks = blockTexts(fragment)
   const fallback = normalizeForAnchorMatch(plainText)
   const exactStart = (blocks[0] ?? fallback).slice(0, 160)
   const finalBlock = blocks.at(-1) ?? exactStart
   const exactEnd = finalBlock !== exactStart ? finalBlock.slice(-160) : undefined
 
-  return {
-    quote: {
-      exactStart,
-      exactEnd,
-      ...boundaryContext(range)
-    },
-    provider: createProviderAnchor(rangeStartElement(range))
-  }
+  return Promise.resolve(createProviderAnchor(rangeStartElement(range))).then(
+    (provider) => ({
+      version: 2,
+      quote: {
+        exactStart,
+        exactEnd,
+        ...boundaryContext(range)
+      },
+      provider
+    })
+  )
 }
 
 const candidateBlocks = () =>
@@ -96,29 +100,39 @@ const tokenSimilarity = (left: Set<string>, right: Set<string>) => {
   return (2 * intersection) / (left.size + right.size)
 }
 
-const ancestorContaining = (element: Element, text: string) => {
-  let current: Element | null = element
-  for (let depth = 0; current && depth < 8; depth += 1) {
-    if (normalizeForAnchorMatch(current.textContent ?? "").includes(text)) return current
-    current = current.parentElement
-  }
-  return null
+const quoteMatchScore = (element: Element, quote: EchoTextQuoteAnchor) => {
+  const blockText = normalizeForAnchorMatch(element.textContent ?? "")
+  if (!blockText.includes(quote.exactStart)) return 0
+
+  let score = 8
+  const contextualText = normalizeForAnchorMatch(
+    element.parentElement?.textContent ?? blockText
+  )
+  if (quote.exactEnd && contextualText.includes(quote.exactEnd)) score += 5
+  if (quote.prefix && contextualText.includes(quote.prefix)) score += 3
+  if (quote.suffix && contextualText.includes(quote.suffix)) score += 3
+  return score
 }
 
 const findByTextQuote = (quote: EchoTextQuoteAnchor) => {
-  const matches = candidateBlocks().filter((element) =>
-    normalizeForAnchorMatch(element.textContent ?? "").includes(quote.exactStart)
-  )
+  const matches = candidateBlocks()
+    .map((element) => ({ element, score: quoteMatchScore(element, quote) }))
+    .filter((candidate) => candidate.score > 0)
+    .sort((left, right) => right.score - left.score)
 
-  if (!matches.length) return null
-  if (!quote.exactEnd) return matches[0]
+  return matches[0]?.element ?? null
+}
 
-  for (const match of matches) {
-    const container = ancestorContaining(match, quote.exactEnd)
-    if (container) return match
-  }
+const findQuoteInside = (container: Element, quote: EchoTextQuoteAnchor) => {
+  const candidates = [
+    container,
+    ...Array.from(container.querySelectorAll(ANCHOR_BLOCK_SELECTOR))
+  ]
+    .map((element) => ({ element, score: quoteMatchScore(element, quote) }))
+    .filter((candidate) => candidate.score > 0)
+    .sort((left, right) => right.score - left.score)
 
-  return matches[0]
+  return candidates[0]?.element ?? container
 }
 
 const findBySimilarText = (quote: EchoTextQuoteAnchor) => {
@@ -137,7 +151,7 @@ const findBySimilarText = (quote: EchoTextQuoteAnchor) => {
   return best && best.score >= 0.48 ? best.element : null
 }
 
-const findAnchorTarget = (anchor: EchoAnchor) => {
+const findAnchorTarget = async (anchor: EchoAnchor) => {
   if (anchor.provider) {
     const legacyAttribute = anchor.provider.attribute
     const legacyValue = anchor.provider.value
@@ -149,11 +163,11 @@ const findAnchorTarget = (anchor: EchoAnchor) => {
         : null
     if (legacyTarget) return legacyTarget
 
-    const providerTarget = findProviderTarget(
+    const providerTarget = await findProviderTarget(
       anchor.provider,
       normalizeForAnchorMatch(anchor.quote.exactStart)
     )
-    if (providerTarget) return providerTarget
+    if (providerTarget) return findQuoteInside(providerTarget, anchor.quote)
   }
 
   return findByTextQuote(anchor.quote) ?? findBySimilarText(anchor.quote)
@@ -180,14 +194,18 @@ const highlightTarget = (target: Element) => {
 
 export const locateEchoAnchor = async (
   anchor: EchoAnchor,
-  attempts = 30,
-  intervalMs = 500
+  attempts = 80,
+  intervalMs = 300
 ) => {
   for (let attempt = 0; attempt < attempts; attempt += 1) {
-    const target = findAnchorTarget(anchor)
+    const target = await findAnchorTarget(anchor)
     if (target) {
       highlightTarget(target)
       return true
+    }
+
+    if (attempt > 0 && attempt % 2 === 0) {
+      loadOlderProviderMessages(anchor.provider?.provider)
     }
     await new Promise((resolve) => setTimeout(resolve, intervalMs))
   }

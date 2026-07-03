@@ -10,7 +10,7 @@ import {
 } from "~capture/title-resolver"
 import type { SelectionCapture } from "~capture/types"
 
-export const getSelectionCapture = (): SelectionCapture | null => {
+export const getSelectionCapture = async (): Promise<SelectionCapture | null> => {
   const selection = window.getSelection()
   if (!selection || selection.isCollapsed || selection.rangeCount === 0) return null
 
@@ -31,7 +31,7 @@ export const getSelectionCapture = (): SelectionCapture | null => {
       preview: resolveCapturePreview(fragment, plainText, title),
       title,
       features: analyzeFragment(fragment, plainText),
-      anchor: createEchoAnchor(range, fragment, plainText)
+      anchor: await createEchoAnchor(range, fragment, plainText)
     }
   }
 }
