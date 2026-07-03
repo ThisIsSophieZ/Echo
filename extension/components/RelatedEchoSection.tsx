@@ -22,6 +22,7 @@ export const RelatedEchoSection = ({
 }: RelatedEchoSectionProps) => {
   const [expanded, setExpanded] = useState(false)
   if (!results.length) return null
+  const allStrong = results.every((result) => result.strength === "strong")
 
   return (
     <section className="mb-stack-md border-y border-outline-variant/70 py-2">
@@ -32,7 +33,7 @@ export const RelatedEchoSection = ({
         type="button">
         <Sparkles className="shrink-0 text-primary" size={16} />
         <span className="min-w-0 flex-1 font-medium">
-          找到 {results.length} 条相关 Echo
+          找到 {results.length} 条{allStrong ? "高度相关" : "可能相关"} Echo
         </span>
         <ChevronDown
           className={`shrink-0 text-on-surface-variant transition-transform ${

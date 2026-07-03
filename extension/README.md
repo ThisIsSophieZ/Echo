@@ -135,13 +135,29 @@ default:
   with an explanation of the matched field and terms.
 - A new selection resets the section to collapsed.
 
-The v0 matcher uses English words, Chinese bigrams, deterministic field
-weights, phrase boosts, and a minimum score. It prefers `userThought`, then
-titles, inferred thoughts, and source text. It deliberately excludes an Echo
-whose source text exactly equals the current selection.
+The current lexical baseline uses `Intl.Segmenter`, BM25, per-field length
+normalization, IDF, and consecutive phrase boosts:
+
+- Only terms that actually occur in the local Echo corpus enter scoring.
+- At most 16 high-IDF query terms survive, preventing long selections from
+  accumulating hundreds of weak matches.
+- `userThought` receives a small boost, followed by title; source and inferred
+  text remain at baseline weight.
+- Each Echo is scored by its strongest field rather than summing duplicate
+  evidence across every field.
+- Scores are normalized to `0–100` confidence and labeled strong or possible;
+  both remain collapsed until explicitly opened.
+- Exact source text is excluded only when it comes from the same URL.
 
 This probe does not add embeddings, vectors, page-wide context, automatic
 sidebar opening, feedback queues, or a Dexie schema migration.
+
+During the Probe, Home also exposes a collapsed `Probe debug` row. It reports
+whether a selection arrived, corpus terms, scanned and accepted counts, and
+every candidate score. Each Echo exposes its strongest field, field weight and
+length, per-term TF/IDF/BM25 contribution, phrase bonus, raw weighted score,
+normalized confidence, and final acceptance or rejection reason.
+This is temporary product instrumentation, not a permanent user-facing surface.
 
 ## Echo data shape (full)
 

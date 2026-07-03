@@ -737,6 +737,96 @@ Verification:
 - Focused tests cover English and Chinese tokenization, explainable overlap,
   weak-match suppression, exact-source exclusion, ranking, and result limits.
 
+### Reflection Probe Diagnostics
+
+Added visible, temporary instrumentation before changing the v0 relevance
+algorithm.
+
+- `analyzeRelatedEchoes` evaluates every Echo once and returns both accepted
+  results and candidate diagnostics.
+- Diagnostics retain raw score, strongest field, matched terms, acceptance,
+  and a stable rejection category.
+- Rejection categories are: empty selection, too few query tokens, exact
+  source, no overlap, and below threshold.
+- `ProbeDebugPanel` is collapsed by default and remains visible on Home even
+  when no candidate passes, making message-delivery failures distinguishable
+  from ranking failures.
+- The expanded panel shows the received selection, extracted tokens, scanned
+  and accepted counts, and up to five ranked candidate explanations.
+
+The scoring formula and threshold were intentionally left unchanged in this
+step. Diagnostics must reveal the failure mode before v0.1 replaces the
+algorithm; otherwise tuning becomes another set of unexplained constants.
+
+Verification:
+
+- `npx tsc --noEmit --incremental false` completed successfully.
+- `npm test` completed successfully: 4 files, 25 tests.
+- The new regression test distinguishes below-threshold overlap from a true
+  no-overlap rejection.
+
+### Lexical Relevance Baseline A
+
+Replaced the failed character-bigram accumulation formula after live dogfood
+produced confident matches from generic fragments such as `实用`, `这个`, and
+`快速`.
+
+Tokenization and corpus selection:
+
+- `Intl.Segmenter("zh-CN", { granularity: "word" })` handles mixed Chinese and
+  English text without a new dependency.
+- A small stop-word set removes pronouns, connectors, and generic adjectives.
+- Three- and four-character fallback terms are generated only for unusually
+  long unsplit Chinese segments.
+- Query terms must occur in the existing Echo corpus.
+- IDF keeps at most 16 informative terms, so a 274-token selection cannot gain
+  score merely by being long.
+
+Scoring:
+
+- Standard BM25 term saturation and field-length normalization use `k1 = 1.2`
+  and `b = 0.75`.
+- Field multipliers are intentionally narrow: `userThought 1.3`, title `1.15`,
+  source `1.0`, inferred thought `1.0`.
+- Only the strongest field contributes to an Echo's final score. Repeated
+  evidence across title and source is not added twice.
+- Consecutive query terms in the same field receive a modest phrase bonus.
+- Raw BM25 is mapped to a `0–100` confidence score.
+- Confidence `>= 60` is strong, `30–59` is possible, and lower evidence is
+  hidden. Both accepted tiers remain collapsed.
+- Exact text is suppressed only when the Echo URL matches the current page.
+
+Explanation and regression:
+
+- Explanations state either that the same token sequence occurred or that
+  concrete terms overlap; they do not claim semantic similarity.
+- A regression reproduces the long checklist/native-English selection from
+  dogfood. The specific checklist Echo passes while generic `实用/这个/快速`
+  cards remain hidden.
+
+Verification:
+
+- `npx tsc --noEmit --incremental false` completed successfully.
+- `npm test` completed successfully: 4 files, 27 tests.
+
+### Per-Echo BM25 Debug Ledger
+
+Expanded the temporary Probe instrumentation from a top-five summary into a
+complete, scrollable score ledger for every scanned Echo.
+
+Each candidate now records:
+
+- strongest matching field and its multiplier;
+- field token length and corpus average for that field;
+- lexical BM25 subtotal and consecutive-phrase bonus;
+- raw weighted score and normalized `0–100` confidence;
+- per-term frequency, IDF, and BM25 contribution;
+- matched phrase, final acceptance, or explicit rejection reason.
+
+Zero-overlap candidates also state the query corpus terms, zero BM25 evidence,
+and absence of a phrase match. This keeps the diagnostic useful when nothing
+surfaces and makes every high score auditable instead of merely labeled.
+
 ### Anchor v2: Persistent Message Identity
 
 Replaced capture-time DOM ordering with persistent, layered message identity.

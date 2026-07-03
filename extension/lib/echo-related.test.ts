@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import type { Echo } from "../db/echoes"
 import {
+  analyzeRelatedEchoes,
   findRelatedEchoes,
   rankRelatedEcho,
   relatedTokens
@@ -21,16 +22,41 @@ const echo = (overrides: Partial<Echo> = {}): Echo => ({
 })
 
 describe("Echo related selection", () => {
-  it("creates English words and Chinese bigrams", () => {
-    expect(relatedTokens("Pricing reflection 定价策略")).toEqual(
-      expect.arrayContaining(["pricing", "reflection", "定价", "价策", "策略"])
+  it("segments English and Chinese words without generic character fragments", () => {
+    const tokens = relatedTokens("Pricing reflection 这个定价策略很实用")
+
+    expect(tokens).toEqual(
+      expect.arrayContaining(["pricing", "reflection", "定价", "策略"])
+    )
+    expect(tokens).not.toEqual(expect.arrayContaining(["这个", "实用", "价策"]))
+  })
+
+  it("filters Chinese filler and segmentation fragments from selections", () => {
+    const tokens = relatedTokens(
+      "外部时间锚点：每完成一个任务就明确记录现在是几点我干了什么（类似你给 gemini 做的事）"
+    )
+
+    expect(tokens).toEqual(
+      expect.arrayContaining(["外部", "时间", "任务", "明确", "记录", "gemini"])
+    )
+    expect(tokens).not.toEqual(
+      expect.arrayContaining([
+        "什么",
+        "做的",
+        "类似",
+        "现在",
+        "一个",
+        "是不是",
+        "咱们",
+        "好像"
+      ])
     )
   })
 
   it("finds an explainable Chinese overlap", () => {
     const result = rankRelatedEcho(echo(), "我们需要重新考虑按结果收费的定价策略")
 
-    expect(result?.reason).toContain("命中")
+    expect(result?.reason).toMatch(/相同短语|有重叠/)
     expect(result?.match.terms.length).toBeGreaterThan(0)
   })
 
@@ -46,6 +72,75 @@ describe("Echo related selection", () => {
   it("does not return the exact selected source", () => {
     const record = echo()
     expect(rankRelatedEcho(record, record.triggerText)).toBeNull()
+  })
+
+  it("explains why candidates were rejected", () => {
+    const analysis = analyzeRelatedEchoes(
+      [
+        echo({ id: "weak", triggerText: "A pricing note", title: "" }),
+        echo({ id: "none", triggerText: "A browser note", title: "" })
+      ],
+      "pricing strategy for enterprise"
+    )
+
+    expect(analysis.scannedCount).toBe(2)
+    expect(analysis.acceptedCount).toBe(0)
+    expect(analysis.candidates[0]).toMatchObject({
+      rejection: "low-confidence"
+    })
+    expect(analysis.candidates[1].rejection).toBe("no-overlap")
+  })
+
+  it("allows the same quote from a different conversation", () => {
+    const record = echo()
+    const result = rankRelatedEcho(
+      record,
+      record.triggerText,
+      "https://chatgpt.com/c/another"
+    )
+
+    expect(result).not.toBeNull()
+  })
+
+  it("suppresses generic long-selection noise and keeps specific evidence", () => {
+    const selection = `
+      实用检查单应该逐条过一遍，用这个 checklist 快速筛选英文文案，
+      判断它是否像 native English speaker 写的。这个方法自然、快速，
+      也可以用于检查语气、可信度与表达。
+    `
+    const records = [
+      echo({
+        id: "relevant",
+        triggerText:
+          "Use this checklist to review whether the copy sounds like a native English speaker.",
+        title: "English copy review"
+      }),
+      echo({
+        id: "generic",
+        triggerText: "这个方案非常实用，也可以快速完成相关内容。",
+        title: "更新后的完整系统提示"
+      }),
+      echo({
+        id: "unrelated",
+        triggerText: "用户需要一个安静的多模型侧边栏。",
+        title: "产品方向"
+      })
+    ]
+
+    const analysis = analyzeRelatedEchoes(records, selection)
+
+    expect(analysis.queryTokens.length).toBeLessThanOrEqual(16)
+    expect(analysis.queryTokens).not.toEqual(
+      expect.arrayContaining(["这个", "实用", "快速"])
+    )
+    expect(analysis.results.map((result) => result.echo.id)).toEqual(["relevant"])
+    expect(analysis.candidates[0].details).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining("最佳字段"),
+        expect.stringContaining("BM25"),
+        expect.stringContaining("词项贡献")
+      ])
+    )
   })
 
   it("prioritizes a user thought and limits the result count", () => {

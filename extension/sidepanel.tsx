@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { History, Home, Lightbulb, Plus, Search, Settings, X, Zap } from "lucide-react"
 
 import { EchoCard } from "~components/EchoCard"
+import { ProbeDebugPanel } from "~components/ProbeDebugPanel"
 import { RelatedEchoSection } from "~components/RelatedEchoSection"
 import {
   addUserThought,
@@ -13,7 +14,7 @@ import {
   type Echo
 } from "~db/echoes"
 import { ECHO_LIST_CHANGED_KEY, notifyEchoListChanged } from "~lib/echo-events"
-import { findRelatedEchoes } from "~lib/echo-related"
+import { analyzeRelatedEchoes } from "~lib/echo-related"
 import { searchEchoes } from "~lib/echo-search"
 import { detectSourceApp } from "~lib/source-app"
 
@@ -92,9 +93,9 @@ const SidePanel = () => {
     () => new Map(searchResults.map((result) => [result.echo.id, result.match])),
     [searchResults]
   )
-  const relatedEchoes = useMemo(
-    () => findRelatedEchoes(echoes, selectedText),
-    [echoes, selectedText]
+  const relatedAnalysis = useMemo(
+    () => analyzeRelatedEchoes(echoes, selectedText, 3, context.url),
+    [context.url, echoes, selectedText]
   )
 
   const showHome = () => {
@@ -141,7 +142,9 @@ const SidePanel = () => {
       if (sender.tab && sender.tab.active === false) return
 
       const text = "text" in message ? String(message.text ?? "") : ""
+      const url = "url" in message ? String(message.url ?? "") : ""
       setSelectedText(text.trim())
+      if (url) setContext((current) => ({ ...current, url }))
     }
 
     chrome.runtime.onMessage.addListener(handleSelectionContext)
@@ -390,10 +393,12 @@ const SidePanel = () => {
           </div>
         ) : null}
 
-        {view === "home" && relatedEchoes.length ? (
+        {view === "home" ? <ProbeDebugPanel analysis={relatedAnalysis} /> : null}
+
+        {view === "home" && relatedAnalysis.results.length ? (
           <RelatedEchoSection
             key={selectedText}
-            results={relatedEchoes}
+            results={relatedAnalysis.results}
             onAddThought={handleAddThought}
             onDelete={handleDeleteEcho}
             onOpenSource={handleOpenSource}
