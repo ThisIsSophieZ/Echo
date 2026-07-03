@@ -1,6 +1,8 @@
+import { useState } from "react"
 import type { Echo } from "~db/echoes"
 import { Bot, Link, Sparkles } from "lucide-react"
 
+import { AddThoughtEditor } from "~components/AddThoughtEditor"
 import { ExpandableText } from "~components/ExpandableText"
 import { EchoCardActions } from "~components/EchoCardActions"
 import { EchoSearchMatchHint } from "~components/EchoSearchMatch"
@@ -11,6 +13,7 @@ import type { EchoSearchMatch } from "~lib/echo-search"
 type EchoCardProps = {
   echo: Echo
   onDelete?: (id: string) => void
+  onAddThought?: (id: string, thought: string) => Promise<void>
   onOpenSource?: (echo: Echo) => void
   onTogglePin?: (id: string) => void
   searchMatch?: EchoSearchMatch
@@ -42,15 +45,19 @@ const iconForSource = (source?: string) => {
 
 export const EchoCard = ({
   echo,
+  onAddThought,
   onDelete,
   onOpenSource,
   onTogglePin,
   searchMatch
 }: EchoCardProps) => {
+  const [isAddingThought, setIsAddingThought] = useState(false)
+
   if (isLongCollect(echo)) {
     return (
       <LongEchoCard
         echo={echo}
+        onAddThought={onAddThought}
         onDelete={onDelete}
         onOpenSource={onOpenSource}
         onTogglePin={onTogglePin}
@@ -89,7 +96,10 @@ export const EchoCard = ({
       </div>
 
       <div className="min-w-0 flex-1">
-        <ExpandableText text={displayText} />
+        <ExpandableText
+          highlightTerms={searchMatch?.terms}
+          text={displayText}
+        />
 
         {echo.userThought && echo.triggerText && echo.userThought !== echo.triggerText ? (
           <div className="mt-2 border-t border-outline-variant/40 pt-2">
@@ -97,11 +107,25 @@ export const EchoCard = ({
               <Link size={12} />
               来源片段
             </p>
-            <ExpandableText text={echo.triggerText} tone="quote" />
+            <ExpandableText
+              highlightTerms={searchMatch?.terms}
+              text={echo.triggerText}
+              tone="quote"
+            />
           </div>
         ) : null}
 
         {showSearchMatch ? <EchoSearchMatchHint match={searchMatch} /> : null}
+
+        {isAddingThought && onAddThought ? (
+          <AddThoughtEditor
+            onCancel={() => setIsAddingThought(false)}
+            onSave={async (thought) => {
+              await onAddThought(echo.id, thought)
+              setIsAddingThought(false)
+            }}
+          />
+        ) : null}
 
         <div className="mt-2 flex items-center gap-2 text-on-surface-variant">
           <span className="text-label-md">{sourceLabel(echo.sourceApp)}</span>
@@ -110,9 +134,10 @@ export const EchoCard = ({
         </div>
       </div>
 
-      <div className="action-zone absolute right-1 top-1 z-10 flex h-10 w-24 items-start justify-end p-1">
+      <div className="action-zone absolute right-1 top-1 z-10 flex h-10 w-28 items-start justify-end p-1">
         <EchoCardActions
           echo={echo}
+          onAddThought={() => setIsAddingThought(true)}
           onDelete={onDelete}
           onTogglePin={onTogglePin}
         />

@@ -1,4 +1,4 @@
-import { Pin, Trash2 } from "lucide-react"
+import { MessageSquarePlus, Pin, Trash2 } from "lucide-react"
 
 import { CopyEchoButton } from "~components/CopyEchoButton"
 import type { Echo } from "~db/echoes"
@@ -6,11 +6,13 @@ import type { Echo } from "~db/echoes"
 type EchoCardActionsProps = {
   echo: Echo
   onDelete?: (id: string) => void
+  onAddThought?: () => void
   onTogglePin?: (id: string) => void
 }
 
 export const EchoCardActions = ({
   echo,
+  onAddThought,
   onDelete,
   onTogglePin
 }: EchoCardActionsProps) => {
@@ -19,6 +21,20 @@ export const EchoCardActions = ({
   return (
     <div className="action-reveal inline-flex items-center gap-0.5 rounded-md border border-outline-variant bg-white p-0.5 opacity-0 shadow-sm transition-opacity">
       <CopyEchoButton echo={echo} />
+      {!echo.userThought && onAddThought ? (
+        <button
+          aria-label="Add thought"
+          className="rounded-full p-1 text-outline transition-colors hover:bg-secondary-container hover:text-primary"
+          onClick={(event) => {
+            event.preventDefault()
+            event.stopPropagation()
+            onAddThought()
+          }}
+          title="补想法"
+          type="button">
+          <MessageSquarePlus size={16} />
+        </button>
+      ) : null}
       <button
         aria-label={isPinned ? "Unpin echo" : "Pin echo"}
         className={`rounded-full p-1 transition-colors ${

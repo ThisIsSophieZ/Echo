@@ -112,6 +112,7 @@ describe("Echo search", () => {
 
     expect(result?.match?.field).toBe("triggerText")
     expect(result?.match?.snippet).toContain("critical")
+    expect(result?.match?.terms).toEqual(["critical"])
     expect(result?.match?.snippet.length).toBeLessThanOrEqual(152)
   })
 

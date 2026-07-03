@@ -30,10 +30,11 @@ Two capture paths, two meanings:
 | **Collect** | Floating `Add to Echo` button or context menu on selected text | `status: raw`, `triggerText` = quote | External trigger (AI text that caught your eye) |
 | **Keep** | Side panel textarea + `Keep` | `status: confirmed`, `userThought` = typed text | Your own thought |
 
-- Collect does **not** auto-open the side panel; a `Saved to Echo` toast appears near the selection instead.
-- After Collect, the confirmation includes an optional one-line
-  `Add a thought...` field. It does not take focus, disappears when ignored,
-  and updates the same Echo when used.
+- Collect does **not** auto-open the side panel or ask for another input.
+  A brief `已保存 · 来自 {source}` toast is the only confirmation.
+- A raw Collect can receive an optional thought later from its collapsed card
+  action. The editor opens only after an explicit click and updates the same
+  Echo to `confirmed`.
 - New Collect actions preserve paragraph and list-item line breaks from supported LLM pages.
 - Structured selections also keep a Markdown representation, compact preview,
   structure metrics, and a text anchor back to the source.
@@ -100,6 +101,8 @@ The bottom Search button opens the first on-demand recall surface.
   Exact phrases receive an additional boost; equal scores remain newest-first.
 - When a match comes from content the card does not normally show, the result
   includes a compact `命中` snippet so the reason is visible.
+- Matching terms are highlighted in visible card text, structured titles,
+  previews, and hidden-field snippets.
 - Closing Search or pressing Home clears the query and restores the Keep
   composer and normal filter chips.
 - `/` opens Search when focus is not inside an editor; `Escape` returns Home.

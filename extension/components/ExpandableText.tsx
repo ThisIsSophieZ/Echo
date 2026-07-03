@@ -1,5 +1,7 @@
 import { useState } from "react"
 
+import { SearchHighlight } from "~components/SearchHighlight"
+
 const COLLAPSED_LINES = 5
 // Sidebar width ~280px; rough wrapped-line estimate when text has no explicit newlines.
 const CHARS_PER_LINE = 42
@@ -7,6 +9,7 @@ const CHARS_PER_LINE = 42
 type ExpandableTextProps = {
   text: string
   tone?: "primary" | "quote"
+  highlightTerms?: string[]
 }
 
 const estimateWrappedLines = (text: string) => {
@@ -21,7 +24,11 @@ const estimateWrappedLines = (text: string) => {
 export const needsExpandCollapse = (text: string) =>
   estimateWrappedLines(text) > COLLAPSED_LINES
 
-export const ExpandableText = ({ text, tone = "primary" }: ExpandableTextProps) => {
+export const ExpandableText = ({
+  text,
+  tone = "primary",
+  highlightTerms
+}: ExpandableTextProps) => {
   const [expanded, setExpanded] = useState(false)
   const collapsible = needsExpandCollapse(text)
   const toneClass = tone === "quote" ? "text-on-surface-variant" : "text-on-surface"
@@ -32,7 +39,7 @@ export const ExpandableText = ({ text, tone = "primary" }: ExpandableTextProps) 
         className={`whitespace-pre-wrap break-words text-body-md leading-snug ${toneClass} ${
           collapsible && !expanded ? "line-clamp-5" : ""
         }`}>
-        {text}
+        <SearchHighlight terms={highlightTerms} text={text} />
       </p>
       {collapsible ? (
         <button

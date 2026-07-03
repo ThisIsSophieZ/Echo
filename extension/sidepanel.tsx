@@ -3,6 +3,7 @@ import { History, Home, Lightbulb, Plus, Search, Settings, X, Zap } from "lucide
 
 import { EchoCard } from "~components/EchoCard"
 import {
+  addUserThought,
   createEcho,
   deleteEcho,
   listRecentEchoes,
@@ -228,6 +229,14 @@ const SidePanel = () => {
     await notifyEchoListChanged()
   }
 
+  const handleAddThought = async (id: string, thought: string) => {
+    const updated = await addUserThought(id, thought)
+    if (!updated) return
+
+    await refreshEchoes()
+    await notifyEchoListChanged()
+  }
+
   const handleOpenSource = async (echo: Echo) => {
     await chrome.runtime.sendMessage({
       type: "echo:open-source",
@@ -356,6 +365,7 @@ const SidePanel = () => {
               <EchoCard
                 key={echo.id}
                 echo={echo}
+                onAddThought={handleAddThought}
                 onDelete={handleDeleteEcho}
                 onOpenSource={handleOpenSource}
                 onTogglePin={handleTogglePin}
@@ -369,8 +379,8 @@ const SidePanel = () => {
           ) : (
             <div className="rounded-lg border border-dashed border-outline-variant bg-white px-4 py-8 text-center text-body-md text-on-surface-variant">
               {view === "search" && searchQuery.trim()
-                ? "No matching echoes."
-                : "No echoes yet."}
+                ? "没有找到相关 Echo，换个关键词试试。"
+                : "划词保存第一个想法吧。"}
             </div>
           )}
         </div>

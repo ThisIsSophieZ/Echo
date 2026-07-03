@@ -7,14 +7,17 @@ import {
 } from "lucide-react"
 
 import type { Echo } from "~db/echoes"
+import { AddThoughtEditor } from "~components/AddThoughtEditor"
 import { EchoCardActions } from "~components/EchoCardActions"
 import { EchoSearchMatchHint } from "~components/EchoSearchMatch"
 import { longCollectPresentation } from "~lib/echo-presentation"
 import type { EchoSearchMatch } from "~lib/echo-search"
+import { SearchHighlight } from "~components/SearchHighlight"
 
 type LongEchoCardProps = {
   echo: Echo
   onDelete?: (id: string) => void
+  onAddThought?: (id: string, thought: string) => Promise<void>
   onOpenSource?: (echo: Echo) => void
   onTogglePin?: (id: string) => void
   searchMatch?: EchoSearchMatch
@@ -27,12 +30,14 @@ const iconForSource = (source?: string) => {
 
 export const LongEchoCard = ({
   echo,
+  onAddThought,
   onDelete,
   onOpenSource,
   onTogglePin,
   searchMatch
 }: LongEchoCardProps) => {
   const [showMarkdown, setShowMarkdown] = useState(false)
+  const [isAddingThought, setIsAddingThought] = useState(false)
   const presentation = longCollectPresentation(echo)
   const SourceIcon = iconForSource(echo.sourceApp)
   const isPinned = echo.status === "pinned"
@@ -61,7 +66,10 @@ export const LongEchoCard = ({
         <div className="min-w-0 flex-1">
           {echo.userThought ? (
             <p className="whitespace-pre-wrap break-words text-body-md font-medium leading-snug text-on-surface">
-              {echo.userThought}
+              <SearchHighlight
+                terms={searchMatch?.terms}
+                text={echo.userThought}
+              />
             </p>
           ) : null}
 
@@ -72,10 +80,18 @@ export const LongEchoCard = ({
                 : undefined
             }>
             <h2 className="break-words text-body-md font-semibold leading-snug text-on-surface">
-              {presentation.title}
+              <SearchHighlight
+                terms={searchMatch?.terms}
+                text={presentation.title}
+              />
             </h2>
             <p className="mt-1 line-clamp-2 break-words text-body-sm leading-snug text-on-surface-variant">
-              “{presentation.preview}”
+              “
+              <SearchHighlight
+                terms={searchMatch?.terms}
+                text={presentation.preview}
+              />
+              ”
             </p>
             <p className="mt-2 text-label-sm text-on-surface-variant/80">
               {presentation.meta}
@@ -83,13 +99,24 @@ export const LongEchoCard = ({
           </div>
 
           {showSearchMatch ? <EchoSearchMatchHint match={searchMatch} /> : null}
+
+          {isAddingThought && onAddThought ? (
+            <AddThoughtEditor
+              onCancel={() => setIsAddingThought(false)}
+              onSave={async (thought) => {
+                await onAddThought(echo.id, thought)
+                setIsAddingThought(false)
+              }}
+            />
+          ) : null}
         </div>
 
       </div>
 
-      <div className="action-zone absolute right-1 top-1 z-10 flex h-10 w-24 items-start justify-end p-1">
+      <div className="action-zone absolute right-1 top-1 z-10 flex h-10 w-28 items-start justify-end p-1">
         <EchoCardActions
           echo={echo}
+          onAddThought={() => setIsAddingThought(true)}
           onDelete={onDelete}
           onTogglePin={onTogglePin}
         />

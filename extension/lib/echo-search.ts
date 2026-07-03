@@ -11,6 +11,7 @@ export type EchoSearchMatch = {
   field: EchoSearchField
   label: string
   snippet: string
+  terms: string[]
 }
 
 export type EchoSearchResult = {
@@ -94,7 +95,8 @@ export const rankEchoSearch = (echo: Echo, query: string): EchoSearchResult | nu
         ? {
             field: strongestField.field,
             label: strongestField.label,
-            snippet: matchSnippet(strongestField.text, terms)
+            snippet: matchSnippet(strongestField.text, terms),
+            terms
           }
         : undefined
   }

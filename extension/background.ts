@@ -1,6 +1,6 @@
 export {}
 
-import { addUserThought, createEcho } from "~db/echoes"
+import { createEcho } from "~db/echoes"
 import type { EchoAnchor, EchoCapture, SelectionCapture } from "~capture/types"
 import { notifyEchoListChanged } from "~lib/echo-events"
 import { detectSourceApp } from "~lib/source-app"
@@ -43,12 +43,12 @@ const getPendingAnchor = async (tabId: number) => {
 // Ask the in-page content script to flash a quick "saved" confirmation near the
 // selection. Fails silently on pages without the content script (e.g. non-LLM
 // pages), where the echo is still saved without the visual cue.
-const flashSavedOnTab = (tabId: number | undefined, echoId: string) => {
+const flashSavedOnTab = (tabId: number | undefined, sourceApp: string) => {
   if (tabId == null) return
   chrome.tabs
     .sendMessage(tabId, {
-      type: "echo:show-star",
-      echoId
+      type: "echo:show-saved",
+      sourceApp
     })
     .catch(() => {})
 }
@@ -194,7 +194,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     .then((selection) =>
       addSelectionAsEcho(selection.plainText, selection.capture, tab, info.pageUrl)
     )
-    .then((echo) => flashSavedOnTab(tab?.id, echo.id))
+    .then((echo) => flashSavedOnTab(tab?.id, echo.sourceApp))
     .catch((error) => console.error("Failed to add selection to Echo", error))
 })
 
@@ -237,25 +237,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true
   }
 
-  if (message?.type === "echo:add-user-thought") {
-    const echoId = String(message.echoId ?? "")
-    const thought = String(message.thought ?? "").trim()
-    if (!echoId || !thought) {
-      sendResponse({ ok: false, error: "Missing Echo or thought" })
-      return false
-    }
-
-    addUserThought(echoId, thought)
-      .then(async (updated) => {
-        if (updated) await notifyEchoListChanged()
-        sendResponse({ ok: updated })
-      })
-      .catch((error) =>
-        sendResponse({ ok: false, error: String(error?.message ?? error) })
-      )
-    return true
-  }
-
   if (message?.type !== "echo:add-selection") return false
 
   const quote = String(message.quote ?? "").trim()
@@ -275,7 +256,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       url: message.url ?? tab?.url
     } as chrome.tabs.Tab
   )
-    .then((echo) => sendResponse({ ok: true, echoId: echo.id }))
+    .then((echo) =>
+      sendResponse({ ok: true, echoId: echo.id, sourceApp: echo.sourceApp })
+    )
     .catch((error) => sendResponse({ ok: false, error: String(error?.message ?? error) }))
 
   return true

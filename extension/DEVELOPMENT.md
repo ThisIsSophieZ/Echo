@@ -654,3 +654,43 @@ Verification:
   (`user-message` / `assistant-message`), which the Grok adapter matches.
 - ChatGPT, Claude, and Gemini still require live end-to-end retesting after the
   unpacked extension is reloaded.
+
+### Quiet Collect And Optional Card Thoughts
+
+Removed the post-Collect quick-thought prompt after product review identified
+it as the remaining forced-recording interaction.
+
+Collect feedback:
+
+- Floating-button and context-menu Collect now show only a 1.6-second,
+  pointer-transparent toast: `已保存 · 来自 {source}`.
+- The background response carries the already-detected `sourceApp`; the content
+  script only formats the label and animation.
+- The old page-level input, expiry state, and `echo:add-user-thought`
+  background message path were removed.
+
+Optional thought:
+
+- Raw cards expose a `MessageSquarePlus` action beside Copy, Pin, and Delete.
+- The editor remains collapsed until explicitly requested.
+- Saving calls the existing Dexie `addUserThought` method in the side panel,
+  updates the same record to `confirmed`, refreshes the list, and emits the
+  existing list-change notification.
+- No new field, table, index, status, or migration was added.
+
+Search and empty states:
+
+- Search results now carry their normalized terms alongside the strongest
+  match.
+- A shared `SearchHighlight` component marks matching text in visible card
+  bodies, structured titles, previews, and hidden-field snippets.
+- Empty Home and Search states now use short, actionable Chinese copy.
+
+Verification:
+
+- `npx tsc --noEmit --incremental false` completed successfully.
+- `npm test` completed successfully: 2 files, 15 tests.
+- `npm run build` completed successfully; the existing optional `svgo` notice
+  remains non-blocking.
+- Source search confirmed that the removed page input and runtime message paths
+  remain only as historical documentation references.

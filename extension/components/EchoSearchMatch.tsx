@@ -1,6 +1,7 @@
 import { Search } from "lucide-react"
 
 import type { EchoSearchMatch } from "~lib/echo-search"
+import { SearchHighlight } from "~components/SearchHighlight"
 
 type EchoSearchMatchProps = {
   match: EchoSearchMatch
@@ -13,7 +14,7 @@ export const EchoSearchMatchHint = ({ match }: EchoSearchMatchProps) => (
       命中 · {match.label}
     </p>
     <p className="line-clamp-2 break-words text-body-sm leading-snug text-on-surface-variant">
-      {match.snippet}
+      <SearchHighlight terms={match.terms} text={match.snippet} />
     </p>
   </div>
 )
