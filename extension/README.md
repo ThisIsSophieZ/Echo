@@ -145,8 +145,16 @@ normalization, IDF, and consecutive phrase boosts:
   text remain at baseline weight.
 - Each Echo is scored by its strongest field rather than summing duplicate
   evidence across every field.
-- Scores are normalized to `0–100` confidence and labeled strong or possible;
-  both remain collapsed until explicitly opened.
+- BM25 is normalized to a `0–100` lexical-evidence score, not presented as a
+  calibrated probability.
+- One-term matches never surface. Two eligible content terms remain debug-only.
+  A result surfaces only with an eligible consecutive phrase or at least three
+  eligible content terms in one field.
+- Generic Tier 2 terms and terms occurring in more than 20% of an established
+  corpus contribute only `0.35` to ranking and cannot create eligibility.
+- Very short Echoes use a minimum effective length of half the field average,
+  preventing BM25's short-document boost from dominating.
+- Duplicate Echo content is suppressed after ranking.
 - Exact source text is excluded only when it comes from the same URL.
 
 This probe does not add embeddings, vectors, page-wide context, automatic
@@ -156,7 +164,11 @@ During the Probe, Home also exposes a collapsed `Probe debug` row. It reports
 whether a selection arrived, corpus terms, scanned and accepted counts, and
 every candidate score. Each Echo exposes its strongest field, field weight and
 length, per-term TF/IDF/BM25 contribution, phrase bonus, raw weighted score,
-normalized confidence, and final acceptance or rejection reason.
+normalized lexical evidence, and final acceptance or rejection reason.
+The expanded panel includes `复制精简报告`. Each report has timestamped
+start/end markers, a summary table, and ranked non-zero evidence with score
+ledgers. Zero-evidence Echoes are represented only by an aggregate count, so
+multiple pasted reports remain compact and separable.
 This is temporary product instrumentation, not a permanent user-facing surface.
 
 ## Echo data shape (full)

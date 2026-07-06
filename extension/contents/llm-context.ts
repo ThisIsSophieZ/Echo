@@ -29,6 +29,8 @@ const ADD_BUTTON_ID = "echo-add-to-echo-button"
 const SAVED_TOAST_ID = "echo-saved-toast"
 const ADD_BUTTON_LIFETIME_MS = 10_000
 const SAVED_TOAST_LIFETIME_MS = 1_600
+const ADD_BUTTON_GAP = 8
+const VIEWPORT_MARGIN = 8
 
 // A reloaded unpacked extension can leave DOM from its invalidated content
 // script behind. Remove any previous instance when a live script starts.
@@ -74,7 +76,7 @@ const ensureAddButton = () => {
   addButton.type = "button"
   addButton.textContent = "Add to Echo"
   addButton.style.cssText = [
-    "position:absolute",
+    "position:fixed",
     "z-index:2147483647",
     "display:none",
     "padding:6px 10px",
@@ -137,21 +139,58 @@ const ensureAddButton = () => {
     setTimeout(hideAddButton, 1800)
   })
 
-  document.body.appendChild(addButton)
+  document.documentElement.appendChild(addButton)
   return addButton
+}
+
+const clamp = (value: number, min: number, max: number) =>
+  Math.min(Math.max(value, min), max)
+
+const measureAddButton = (button: HTMLButtonElement) => {
+  button.style.visibility = "hidden"
+  button.style.display = "block"
+  const size = { width: button.offsetWidth, height: button.offsetHeight }
+  button.style.visibility = ""
+  return size
+}
+
+// LLM pages (e.g. ChatGPT) render their own selection toolbar above the highlight.
+// Prefer below the selection; when above, align to the trailing edge to avoid overlap.
+const positionAddButton = (button: HTMLButtonElement, rect: DOMRect) => {
+  const { width, height } = measureAddButton(button)
+  const maxLeft = window.innerWidth - width - VIEWPORT_MARGIN
+  const clampLeft = (left: number) => clamp(left, VIEWPORT_MARGIN, maxLeft)
+
+  const belowTop = rect.bottom + ADD_BUTTON_GAP
+  const aboveTop = rect.top - height - ADD_BUTTON_GAP
+  const fitsBelow = belowTop + height <= window.innerHeight - VIEWPORT_MARGIN
+  const fitsAbove = aboveTop >= VIEWPORT_MARGIN
+
+  let top = belowTop
+  let left = clampLeft(rect.left)
+
+  if (fitsBelow) {
+    top = belowTop
+    left = clampLeft(rect.left)
+  } else if (fitsAbove) {
+    top = aboveTop
+    left = clampLeft(rect.right - width)
+  } else {
+    top = clamp(belowTop, VIEWPORT_MARGIN, window.innerHeight - height - VIEWPORT_MARGIN)
+    left = clampLeft(rect.left)
+  }
+
+  button.style.top = `${top}px`
+  button.style.left = `${left}px`
 }
 
 const showAddButton = (rect: DOMRect, selectionCapture: SelectionCapture) => {
   lastSelectionCapture = selectionCapture
   const button = ensureAddButton()
-  const top = Math.max(window.scrollY + 8, window.scrollY + rect.top - 40)
-  const left = Math.min(window.scrollX + rect.left, window.scrollX + window.innerWidth - 132)
-
-  button.style.top = `${top}px`
-  button.style.left = `${left}px`
-  button.style.display = "block"
   button.textContent = "Add to Echo"
   button.disabled = false
+  positionAddButton(button, rect)
+  button.style.display = "block"
 
   buttonExpiry?.cancel()
   buttonExpiry = button.animate(

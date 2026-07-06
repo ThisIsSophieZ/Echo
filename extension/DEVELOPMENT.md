@@ -827,6 +827,77 @@ Zero-overlap candidates also state the query corpus terms, zero BM25 evidence,
 and absence of a phrase match. This keeps the diagnostic useful when nothing
 surfaces and makes every high score auditable instead of merely labeled.
 
+### Copyable Probe Report
+
+Reduced manual dogfood recording to one explicit action:
+
+- `lib/probe-report.ts` converts the current analysis into stable Markdown.
+- The report includes the selection, corpus terms, scanned and accepted totals,
+  candidate IDs, decisions, confidence, explanations, matches, and full score
+  ledgers.
+- `ProbeDebugPanel` exposes `复制报告` only after a selection is available.
+- Successful copy shows `已复制`; clipboard failures show a temporary error.
+- Nothing is automatically stored, uploaded, or added to the Echo database.
+
+Verification:
+
+- The formatter has a deterministic timestamp injection for focused tests.
+- Its regression test checks selection, totals, acceptance, confidence, and
+  BM25 ledger output.
+
+Report compaction:
+
+- Confidence-zero candidates are omitted from detailed output and retained as
+  a single `Zero evidence` summary count.
+- Non-zero evidence remains sorted by the analysis ranking.
+- Each report has timestamped `ECHO_PROBE_REPORT_START/END` markers.
+- A fixed summary table makes several reports easy to compare after pasting
+  them into one conversation.
+- Single-line Echo labels prevent captured paragraph breaks from corrupting
+  report headings.
+
+### Precision-First Lexical Gate
+
+Audited 16 copied Probe reports containing 1,493 candidate scans:
+
+- 256 candidates were accepted, averaging 16 per selection and peaking at 30.
+- 139 accepted candidates used only one matched term.
+- 250 of 256 had no consecutive phrase.
+- 252 of 256 used `triggerText` as the strongest field.
+- 76 candidates scored at least 60 from one term with no phrase.
+
+The BM25 scorer is now a high-precision candidate gate rather than a standalone
+relatedness judge.
+
+Eligibility:
+
+- A single term never surfaces, regardless of IDF.
+- Two eligible content terms are recorded as `possible-only` in diagnostics.
+- Surfacing requires an eligible consecutive phrase or at least three eligible
+  terms in the same strongest field.
+- Tier 2 terms contribute `0.35` to ranking but never count toward eligibility.
+- In corpora of at least 10 Echoes, terms present in over 20% of documents are
+  automatically treated as Tier 2.
+
+Ranking safety:
+
+- BM25 field length is clamped to at least half the corpus field average,
+  limiting extreme boosts for four- or eight-token Echoes.
+- Identical normalized thought/source content is deduplicated after ranking;
+  suppressed candidates remain visible in diagnostics with a `duplicate`
+  reason.
+- The displayed number is described as lexical evidence rather than calibrated
+  confidence.
+
+Regression coverage:
+
+- one-term rejection;
+- two-term debug-only behavior;
+- three-term surfacing;
+- Tier 2 terms not granting eligibility;
+- duplicate suppression;
+- small-corpus frequency-tier cold-start behavior.
+
 ### Anchor v2: Persistent Message Identity
 
 Replaced capture-time DOM ordering with persistent, layered message identity.

@@ -100,9 +100,64 @@ describe("Echo related selection", () => {
     expect(analysis.scannedCount).toBe(2)
     expect(analysis.acceptedCount).toBe(0)
     expect(analysis.candidates[0]).toMatchObject({
-      rejection: "low-confidence"
+      rejection: "low-evidence"
     })
     expect(analysis.candidates[1].rejection).toBe("no-overlap")
+  })
+
+  it("keeps two non-consecutive content terms in debug only", () => {
+    const unrelated = Array.from({ length: 10 }, (_, index) =>
+      echo({
+        id: `unrelated-${index}`,
+        triggerText: "browser capture note",
+        title: ""
+      })
+    )
+    const analysis = analyzeRelatedEchoes(
+      [
+        echo({
+          id: "candidate",
+          triggerText: "pricing note for enterprise",
+          title: ""
+        }),
+        ...unrelated
+      ],
+      "pricing enterprise strategy"
+    )
+
+    expect(analysis.results).toHaveLength(0)
+    expect(
+      analysis.candidates.find((candidate) => candidate.echo.id === "candidate")
+        ?.rejection
+    ).toBe("possible-only")
+  })
+
+  it("surfaces three independent content terms", () => {
+    const analysis = analyzeRelatedEchoes(
+      [
+        echo({
+          triggerText: "strategy note with pricing for enterprise",
+          title: ""
+        })
+      ],
+      "pricing enterprise strategy launch"
+    )
+
+    expect(analysis.results).toHaveLength(1)
+  })
+
+  it("does not let Tier 2 words create eligibility", () => {
+    const analysis = analyzeRelatedEchoes(
+      [
+        echo({
+          triggerText: "产品真正帮助用户理解定价",
+          title: ""
+        })
+      ],
+      "产品真正帮助用户重新考虑定价"
+    )
+
+    expect(analysis.results).toHaveLength(0)
   })
 
   it("allows the same quote from a different conversation", () => {
@@ -157,7 +212,7 @@ describe("Echo related selection", () => {
     )
   })
 
-  it("prioritizes a user thought and limits the result count", () => {
+  it("prioritizes a user thought and suppresses duplicate source Echoes", () => {
     const records = [
       echo({ id: "source-1" }),
       echo({ id: "source-2", createdAt: "2026-07-02T00:00:00.000Z" }),
@@ -171,7 +226,10 @@ describe("Echo related selection", () => {
     ]
 
     const results = findRelatedEchoes(records, "重新考虑按结果收费的定价", 3)
-    expect(results).toHaveLength(3)
+    expect(results).toHaveLength(2)
     expect(results[0].echo.id).toBe("thought")
+    expect(
+      new Set(results.map((result) => result.echo.triggerText)).size
+    ).toBe(results.length)
   })
 })

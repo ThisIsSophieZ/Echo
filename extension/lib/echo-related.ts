@@ -16,7 +16,9 @@ export type RelatedEchoRejection =
   | "no-corpus-terms"
   | "exact-source"
   | "no-overlap"
-  | "low-confidence"
+  | "low-evidence"
+  | "possible-only"
+  | "duplicate"
 
 export type RelatedEchoCandidateDiagnostic = {
   echo: Echo
@@ -47,6 +49,9 @@ type FieldConfig = {
 type CorpusTerm = {
   value: string
   idf: number
+  documentRatio: number
+  tier: 2 | 3 | 4
+  weight: number
 }
 
 type FieldDocument = FieldConfig & {
@@ -65,7 +70,9 @@ const MAX_QUERY_TERMS = 16
 const BM25_K1 = 1.2
 const BM25_B = 0.75
 const POSSIBLE_CONFIDENCE = 30
-const STRONG_CONFIDENCE = 60
+const TIER_2_WEIGHT = 0.35
+const HIGH_DOCUMENT_FREQUENCY = 0.2
+const MIN_DOCUMENTS_FOR_FREQUENCY_TIER = 10
 
 const STOP_WORDS = new Set([
   "and",
@@ -82,6 +89,47 @@ const STOP_WORDS = new Set([
   "with",
   "you",
   "your"
+])
+
+const TIER_2_TERMS = new Set([
+  "继续",
+  "不要",
+  "真正",
+  "用户",
+  "产品",
+  "今天",
+  "直接",
+  "做得",
+  "下来",
+  "只能",
+  "努力",
+  "达到",
+  "结论",
+  "激活",
+  "很好",
+  "任何",
+  "以后",
+  "第一",
+  "都会",
+  "人的",
+  "表现",
+  "逻辑",
+  "识别",
+  "统一",
+  "相当",
+  "一块",
+  "遇到",
+  "小时",
+  "一句",
+  "关键",
+  "帮助",
+  "目标",
+  "everything",
+  "until",
+  "there",
+  "itself",
+  "description",
+  "build"
 ])
 
 const STOP_CJK = new Set([
@@ -308,6 +356,30 @@ const echoDocuments = (echo: Echo): FieldDocument[] =>
     return { ...config, text, tokens: tokenize(text) }
   })
 
+const termTier = (
+  value: string,
+  documentRatio: number,
+  documentCount: number
+): 2 | 3 | 4 => {
+  if (
+    TIER_2_TERMS.has(value) ||
+    (documentCount >= MIN_DOCUMENTS_FOR_FREQUENCY_TIER &&
+      documentRatio > HIGH_DOCUMENT_FREQUENCY)
+  ) {
+    return 2
+  }
+  if ((isCjk(value) && value.length >= 3) || (!isCjk(value) && value.length >= 5)) {
+    return 4
+  }
+  return 3
+}
+
+const tierWeight = (tier: 2 | 3 | 4) => {
+  if (tier === 2) return TIER_2_WEIGHT
+  if (tier === 4) return 1.2
+  return 1
+}
+
 const corpusTerms = (echoes: Echo[], selection: string) => {
   const queryTerms = relatedTokens(selection)
   const corpusDocuments = echoes.map((echo) => {
@@ -322,16 +394,24 @@ const corpusTerms = (echoes: Echo[], selection: string) => {
         document.has(value)
       ).length
       if (!documentFrequency) return null
+      const documentRatio = documentFrequency / documentCount
+      const tier = termTier(value, documentRatio, documentCount)
 
       return {
         value,
+        documentRatio,
+        tier,
+        weight: tierWeight(tier),
         idf: Math.log(
           1 + (documentCount - documentFrequency + 0.5) / (documentFrequency + 0.5)
         )
       }
     })
     .filter((term): term is CorpusTerm => term !== null)
-    .sort((left, right) => right.idf - left.idf)
+    .sort(
+      (left, right) =>
+        right.idf * right.weight - left.idf * left.weight
+    )
     .slice(0, MAX_QUERY_TERMS)
 }
 
@@ -347,9 +427,11 @@ const bm25TermScore = (
   if (!frequency) return 0
 
   const length = Math.max(1, tokens.length)
+  const effectiveLength = Math.max(length, averageLength * 0.5)
   const normalization =
     frequency +
-    BM25_K1 * (1 - BM25_B + BM25_B * (length / Math.max(1, averageLength)))
+    BM25_K1 *
+      (1 - BM25_B + BM25_B * (effectiveLength / Math.max(1, averageLength)))
 
   return term.idf * ((frequency * (BM25_K1 + 1)) / normalization)
 }
@@ -400,7 +482,7 @@ const comparableUrl = (value?: string) => {
   }
 }
 
-const confidenceFromBm25 = (score: number) =>
+const lexicalEvidenceFromBm25 = (score: number) =>
   Math.min(100, Math.round((1 - Math.exp(-score / 4)) * 100))
 
 const evaluateRelatedEcho = (
@@ -457,7 +539,8 @@ const evaluateRelatedEcho = (
     const termScores = matched.map((term) => ({
       term,
       frequency: termFrequency(field.tokens, term.value),
-      score: bm25TermScore(term, field.tokens, averageLength)
+      baseScore: bm25TermScore(term, field.tokens, averageLength),
+      score: bm25TermScore(term, field.tokens, averageLength) * term.weight
     }))
     const lexicalScore = termScores.reduce(
       (total, termScore) => total + termScore.score,
@@ -495,20 +578,26 @@ const evaluateRelatedEcho = (
     )
   }
 
-  const confidence = confidenceFromBm25(strongest.score)
+  const lexicalEvidence = lexicalEvidenceFromBm25(strongest.score)
   const matchedTerms = strongest.matched.slice(0, 3).map((term) => term.value)
-  const distinctMatches = new Set(strongest.matched.map((term) => term.value)).size
-  const hasRareTerm = strongest.matched.some((term) => term.idf >= 2.5)
-  const hasPhrase = strongest.phrase.length >= 2
+  const eligibleMatched = strongest.matched.filter((term) => term.tier >= 3)
+  const eligibleDistinct = new Set(eligibleMatched.map((term) => term.value)).size
+  const phraseTerms = strongest.phrase
+    .map((value) => queryTerms.find((term) => term.value === value))
+    .filter((term): term is CorpusTerm => Boolean(term))
+  const hasEligiblePhrase =
+    phraseTerms.length >= 2 && phraseTerms.every((term) => term.tier >= 3)
+  const qualifiesAsPossible = eligibleDistinct >= 2
+  const qualifiesAsStrong = hasEligiblePhrase || eligibleDistinct >= 3
   const details = [
     `最佳字段：${strongest.label} · 权重 ${strongest.weight}`,
-    `字段长度：${strongest.tokens.length} tokens · 同字段平均 ${fixed(strongest.averageLength)}`,
-    `BM25 ${fixed(strongest.lexicalScore)} + 短语奖励 ${fixed(strongest.phraseBonus)}，乘字段权重后 ${fixed(strongest.score)} → 置信度 ${confidence}`,
+    `字段长度：${strongest.tokens.length} tokens · 计分长度下限 ${fixed(strongest.averageLength * 0.5)} · 同字段平均 ${fixed(strongest.averageLength)}`,
+    `BM25 ${fixed(strongest.lexicalScore)} + 短语奖励 ${fixed(strongest.phraseBonus)}，乘字段权重后 ${fixed(strongest.score)} → 词法证据 ${lexicalEvidence}`,
     strongest.termScores.length
       ? `词项贡献：${strongest.termScores
           .map(
-            ({ term, frequency, score }) =>
-              `${term.value}(tf ${frequency}, idf ${fixed(term.idf)}, +${fixed(score)})`
+            ({ term, frequency, baseScore, score }) =>
+              `${term.value}(Tier ${term.tier}, df ${Math.round(term.documentRatio * 100)}%, tf ${frequency}, idf ${fixed(term.idf)}, ${fixed(baseScore)}×${term.weight}=+${fixed(score)})`
           )
           .join("；")}`
       : "词项贡献：无",
@@ -517,28 +606,35 @@ const evaluateRelatedEcho = (
       : "连续短语：无"
   ]
 
-  if (
-    confidence < POSSIBLE_CONFIDENCE ||
-    (distinctMatches < 2 && !hasRareTerm && !hasPhrase)
-  ) {
+  if (lexicalEvidence < POSSIBLE_CONFIDENCE || !qualifiesAsPossible) {
     return rejected(
-      "low-confidence",
-      `置信度 ${confidence}，证据不足`,
-      confidence,
+      "low-evidence",
+      `词法证据 ${lexicalEvidence}，但没有至少 2 个有效内容词`,
+      lexicalEvidence,
       strongest.label,
       matchedTerms,
       details
     )
   }
 
-  const strength: RelatedStrength =
-    confidence >= STRONG_CONFIDENCE ? "strong" : "possible"
-  const reason = hasPhrase
+  if (!qualifiesAsStrong) {
+    return rejected(
+      "possible-only",
+      `可能相关：${eligibleDistinct} 个有效内容词，仅保留在 debug`,
+      lexicalEvidence,
+      strongest.label,
+      matchedTerms,
+      details
+    )
+  }
+
+  const strength: RelatedStrength = "strong"
+  const reason = hasEligiblePhrase
     ? `${strongest.label}中出现相同短语「${strongest.phrase.slice(0, 4).join(" ")}」`
     : `${strongest.label}与你选中的「${matchedTerms.join("、")}」有重叠`
   const result: RelatedEchoResult = {
     echo,
-    score: confidence,
+    score: lexicalEvidence,
     strength,
     reason,
     match: {
@@ -552,7 +648,7 @@ const evaluateRelatedEcho = (
   return {
     diagnostic: {
       echo,
-      score: confidence,
+      score: lexicalEvidence,
       accepted: true,
       reason,
       strongestField: strongest.label,
@@ -584,16 +680,37 @@ export const analyzeRelatedEchoes = (
   const evaluated = echoes.map((echo) =>
     evaluateRelatedEcho(echo, selection, queryTerms, averageLengths, currentUrl)
   )
-  const candidates = evaluated
-    .map(({ diagnostic }) => diagnostic)
+  const acceptedBeforeDeduplication = evaluated
+    .map(({ result }) => result)
+    .filter((result): result is RelatedEchoResult => result !== null)
     .sort(
       (left, right) =>
         right.score - left.score ||
         right.echo.createdAt.localeCompare(left.echo.createdAt)
     )
-  const accepted = evaluated
-    .map(({ result }) => result)
-    .filter((result): result is RelatedEchoResult => result !== null)
+  const seenContent = new Set<string>()
+  const accepted = acceptedBeforeDeduplication.filter((result) => {
+    const contentKey = normalizeRelatedText(
+      [result.echo.userThought, result.echo.triggerText].filter(Boolean).join("\n")
+    )
+    if (!contentKey || !seenContent.has(contentKey)) {
+      if (contentKey) seenContent.add(contentKey)
+      return true
+    }
+
+    const duplicate = evaluated.find(
+      ({ diagnostic }) => diagnostic.echo.id === result.echo.id
+    )?.diagnostic
+    if (duplicate) {
+      duplicate.accepted = false
+      duplicate.rejection = "duplicate"
+      duplicate.reason = "与更高排名 Echo 内容重复"
+      duplicate.details.push("浮现资格：重复内容已抑制")
+    }
+    return false
+  })
+  const candidates = evaluated
+    .map(({ diagnostic }) => diagnostic)
     .sort(
       (left, right) =>
         right.score - left.score ||

@@ -1,6 +1,8 @@
-import { Bug, ChevronDown } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
+import { Bug, Check, ChevronDown, Copy } from "lucide-react"
 
 import type { RelatedEchoAnalysis } from "~lib/echo-related"
+import { formatProbeReport } from "~lib/probe-report"
 
 type ProbeDebugPanelProps = {
   analysis: RelatedEchoAnalysis
@@ -8,6 +10,27 @@ type ProbeDebugPanelProps = {
 
 export const ProbeDebugPanel = ({ analysis }: ProbeDebugPanelProps) => {
   const hasSelection = Boolean(analysis.selection)
+  const [copyState, setCopyState] = useState<"idle" | "copied" | "error">("idle")
+  const resetTimer = useRef<number | null>(null)
+
+  useEffect(
+    () => () => {
+      if (resetTimer.current != null) window.clearTimeout(resetTimer.current)
+    },
+    []
+  )
+
+  const copyReport = async () => {
+    try {
+      await navigator.clipboard.writeText(formatProbeReport(analysis))
+      setCopyState("copied")
+    } catch {
+      setCopyState("error")
+    }
+
+    if (resetTimer.current != null) window.clearTimeout(resetTimer.current)
+    resetTimer.current = window.setTimeout(() => setCopyState("idle"), 1600)
+  }
 
   return (
     <details className="group mb-stack-md border-b border-outline-variant/50 pb-2">
@@ -27,6 +50,26 @@ export const ProbeDebugPanel = ({ analysis }: ProbeDebugPanelProps) => {
       <div className="mt-2 space-y-2 rounded-md bg-surface-container-low p-2 text-label-sm text-on-surface-variant">
         {hasSelection ? (
           <>
+            <div className="flex justify-end">
+              <button
+                className={`inline-flex items-center gap-1 rounded-full px-2 py-1 font-medium transition-colors ${
+                  copyState === "error"
+                    ? "text-error"
+                    : copyState === "copied"
+                      ? "text-primary"
+                      : "text-on-surface-variant hover:bg-secondary-container hover:text-primary"
+                }`}
+                onClick={() => void copyReport()}
+                title="Copy Probe report"
+                type="button">
+                {copyState === "copied" ? <Check size={13} /> : <Copy size={13} />}
+                {copyState === "copied"
+                  ? "已复制"
+                  : copyState === "error"
+                    ? "复制失败"
+                    : "复制精简报告"}
+              </button>
+            </div>
             <p className="line-clamp-2 break-words">
               选区：{analysis.selection}
             </p>
