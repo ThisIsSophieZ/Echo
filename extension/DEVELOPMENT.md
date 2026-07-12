@@ -660,6 +660,10 @@ Verification:
 Removed the post-Collect quick-thought prompt after product review identified
 it as the remaining forced-recording interaction.
 
+> 2026-07-13 update: the ephemeral post-Collect prompt was restored after
+> dogfood. See [2026-07-13：恢复 Collect 后可选小想法框](#2026-07-13恢复-collect-后可选小想法框).
+> The card hover action remains as a fallback.
+
 Collect feedback:
 
 - Floating-button and context-menu Collect now show only a 1.6-second,
@@ -898,6 +902,35 @@ Regression coverage:
 - duplicate suppression;
 - small-corpus frequency-tier cold-start behavior.
 
+### Probe Intent Layer
+
+Added a report-only classifier so dogfood can separate different recall
+meanings instead of treating every accepted BM25 match as the same product
+signal.
+
+New analysis fields:
+
+- `selectionKind`: `product-thought`, `task-material`, `meta-debug`, or
+  `unknown`.
+- `echoIntent`: `insight`, `product-meta`, `task-material`, `debug`, or
+  `unknown`.
+- `matchKind`: `thought-continuity`, `product-meta-reference`,
+  `task-material-recall`, `debug-noise`, `weak-lexical-overlap`, or `unknown`.
+
+Important boundary:
+
+- The classifier is heuristic and only affects diagnostics / copied Probe
+  reports.
+- It does not write labels to IndexedDB.
+- It does not ask the user to maintain categories.
+- It does not yet change the Home list ranking or BM25 accepted/rejected
+  behavior.
+
+This preserves the current quiet product surface while making future Probe
+reports easier to judge: a Procreate how-to match can be counted as task
+material recall, while a product-direction selection that accepts `Gemini 说`
+can be recognized as likely debug noise.
+
 ### Anchor v2: Persistent Message Identity
 
 Replaced capture-time DOM ordering with persistent, layered message identity.
@@ -951,3 +984,28 @@ Verification:
   SHA-256 output, changed-content rejection, and head/tail length tolerance.
 - `npm run build` completed successfully; the existing optional `svgo` notice
   remains non-blocking.
+
+### 2026-07-13：恢复 Collect 后可选小想法框
+
+Dogfood 反馈：卡片右上角「补想法」不够顺手；收藏当下常有一句短笔记要记，
+以前那个几秒自动消失的小框更合适。
+
+恢复行为：
+
+- 浮动按钮或右键 Collect 成功后，在选区附近显示一行提示框：
+  `已保存 · {来源}` + `补一句想法...` + `保存`。
+- 约 8 秒无操作自动消失；聚焦输入框后暂停计时，避免写到一半被关掉。
+- Enter 保存、Esc 关闭；保存成功后短暂显示「想法已加上」再收起。
+- 通过 `echo:add-user-thought` 写回同一条 Echo 的 `userThought`，并
+  `notifyEchoListChanged`；不新建第二条记录。
+- 卡片 hover「补想法」入口保留，作为漏写时的备用路径。
+- 底部纯 toast 路径收回；确认与补想法合并进同一提示框。
+
+未改：
+
+- Dexie schema、卡片结构、Probe / intent 分桶逻辑。
+
+验证：
+
+- `npm test`：6 files, 37 tests passed。
+- `npm run build` completed successfully.

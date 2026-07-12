@@ -1,4 +1,12 @@
 import type { Echo } from "~db/echoes"
+import {
+  classifyEchoIntent,
+  classifyRecallMatchKind,
+  classifySelectionKind,
+  type EchoIntent,
+  type RecallMatchKind,
+  type SelectionKind
+} from "./echo-intent"
 import type { EchoSearchField, EchoSearchMatch } from "~lib/echo-search"
 
 export type RelatedStrength = "strong" | "possible"
@@ -26,6 +34,10 @@ export type RelatedEchoCandidateDiagnostic = {
   accepted: boolean
   reason: string
   rejection?: RelatedEchoRejection
+  echoIntent: EchoIntent
+  echoIntentReason: string
+  matchKind: RecallMatchKind
+  matchKindReason: string
   strongestField?: string
   matchedTerms: string[]
   details: string[]
@@ -33,6 +45,8 @@ export type RelatedEchoCandidateDiagnostic = {
 
 export type RelatedEchoAnalysis = {
   selection: string
+  selectionKind: SelectionKind
+  selectionKindReason: string
   queryTokens: string[]
   scannedCount: number
   acceptedCount: number
@@ -488,6 +502,7 @@ const lexicalEvidenceFromBm25 = (score: number) =>
 const evaluateRelatedEcho = (
   echo: Echo,
   selection: string,
+  selectionKind: SelectionKind,
   queryTerms: CorpusTerm[],
   averageLengths: Map<EchoSearchField, number>,
   currentUrl?: string
@@ -496,6 +511,8 @@ const evaluateRelatedEcho = (
   result: RelatedEchoResult | null
 } => {
   const normalizedSelection = normalizeRelatedText(selection)
+  const echoIntent = classifyEchoIntent(echo)
+  const matchKind = classifyRecallMatchKind(selectionKind, echoIntent.kind)
   const rejected = (
     rejection: RelatedEchoRejection,
     reason: string,
@@ -510,6 +527,10 @@ const evaluateRelatedEcho = (
       accepted: false,
       reason,
       rejection,
+      echoIntent: echoIntent.kind,
+      echoIntentReason: echoIntent.reason,
+      matchKind: matchKind.kind,
+      matchKindReason: matchKind.reason,
       strongestField,
       matchedTerms,
       details
@@ -651,6 +672,10 @@ const evaluateRelatedEcho = (
       score: lexicalEvidence,
       accepted: true,
       reason,
+      echoIntent: echoIntent.kind,
+      echoIntentReason: echoIntent.reason,
+      matchKind: matchKind.kind,
+      matchKindReason: matchKind.reason,
       strongestField: strongest.label,
       matchedTerms,
       details
@@ -665,6 +690,7 @@ export const analyzeRelatedEchoes = (
   limit = 3,
   currentUrl?: string
 ) => {
+  const selectionIntent = classifySelectionKind(selection)
   const queryTerms = corpusTerms(echoes, selection)
   const documents = echoes.flatMap(echoDocuments)
   const averageLengths = new Map<EchoSearchField, number>(
@@ -678,7 +704,14 @@ export const analyzeRelatedEchoes = (
     })
   )
   const evaluated = echoes.map((echo) =>
-    evaluateRelatedEcho(echo, selection, queryTerms, averageLengths, currentUrl)
+    evaluateRelatedEcho(
+      echo,
+      selection,
+      selectionIntent.kind,
+      queryTerms,
+      averageLengths,
+      currentUrl
+    )
   )
   const acceptedBeforeDeduplication = evaluated
     .map(({ result }) => result)
@@ -719,6 +752,8 @@ export const analyzeRelatedEchoes = (
 
   return {
     selection: normalizeRelatedText(selection),
+    selectionKind: selectionIntent.kind,
+    selectionKindReason: selectionIntent.reason,
     queryTokens: queryTerms.map((term) => term.value),
     scannedCount: echoes.length,
     acceptedCount: accepted.length,

@@ -30,11 +30,14 @@ Two capture paths, two meanings:
 | **Collect** | Floating `Add to Echo` button or context menu on selected text | `status: raw`, `triggerText` = quote | External trigger (AI text that caught your eye) |
 | **Keep** | Side panel textarea + `Keep` | `status: confirmed`, `userThought` = typed text | Your own thought |
 
-- Collect does **not** auto-open the side panel or ask for another input.
-  A brief `已保存 · 来自 {source}` toast is the only confirmation.
-- A raw Collect can receive an optional thought later from its collapsed card
-  action. The editor opens only after an explicit click and updates the same
-  Echo to `confirmed`.
+- Collect does **not** auto-open the side panel or force a follow-up.
+  After a successful save, a near-selection prompt shows
+  `已保存 · {source}` with an optional one-line `补一句想法...` field.
+  Ignoring it for about 8 seconds dismisses the prompt; focusing the input
+  pauses the timer. Enter saves onto the same Echo; Esc closes it.
+- A raw Collect can also receive an optional thought later from its card
+  hover action (`补想法`). That editor opens only after an explicit click
+  and updates the same Echo to `confirmed`.
 - New Collect actions preserve paragraph and list-item line breaks from supported LLM pages.
 - Structured selections also keep a Markdown representation, compact preview,
   structure metrics, and a text anchor back to the source.
@@ -169,6 +172,17 @@ The expanded panel includes `复制精简报告`. Each report has timestamped
 start/end markers, a summary table, and ranked non-zero evidence with score
 ledgers. Zero-evidence Echoes are represented only by an aggregate count, so
 multiple pasted reports remain compact and separable.
+Reports also include an experimental intent layer:
+
+- `Selection kind` explains whether the current selection looks like product
+  thought, task material, meta/debug analysis, or unknown.
+- Each candidate includes `Echo intent` and `Match kind`, distinguishing
+  thought continuity from task-material recall, product-meta reference, and
+  suspected debug noise.
+- These classifications are heuristic report instrumentation only. They do
+  not change Dexie data, require user-maintained labels, or currently affect
+  the visible recall list.
+
 This is temporary product instrumentation, not a permanent user-facing surface.
 
 ## Echo data shape (full)

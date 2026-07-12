@@ -43,6 +43,8 @@ export const formatProbeReport = (
     "| ---: | ---: | ---: | ---: |",
     `| ${analysis.scannedCount} | ${evidenceCandidates.length} | ${analysis.acceptedCount} | ${zeroEvidenceCount} |`,
     "",
+    `**Selection kind:** ${analysis.selectionKind} — ${analysis.selectionKindReason}`,
+    "",
     `**Corpus terms:** ${analysis.queryTokens.join(", ") || "(none)"}`,
     "",
     "## Ranked Evidence",
@@ -56,6 +58,8 @@ export const formatProbeReport = (
       `- Echo ID: ${candidate.echo.id}`,
       `- Decision: ${candidate.accepted ? "accepted" : `rejected (${candidate.rejection ?? "unknown"})`}`,
       `- Reason: ${candidate.reason}`,
+      `- Echo intent: ${candidate.echoIntent} — ${candidate.echoIntentReason}`,
+      `- Match kind: ${candidate.matchKind} — ${candidate.matchKindReason}`,
       `- Strongest field: ${candidate.strongestField ?? "(none)"}`,
       `- Matched terms: ${candidate.matchedTerms.join(", ") || "(none)"}`
     )

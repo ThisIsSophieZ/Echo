@@ -22,20 +22,20 @@ export const config: PlasmoCSConfig = {
 let addButton: HTMLButtonElement | null = null
 let lastSelectionCapture: SelectionCapture | null = null
 let buttonExpiry: Animation | null = null
-let savedToast: HTMLDivElement | null = null
-let savedToastExpiry: number | null = null
+let thoughtPrompt: HTMLDivElement | null = null
+let thoughtPromptExpiry: number | null = null
 
 const ADD_BUTTON_ID = "echo-add-to-echo-button"
-const SAVED_TOAST_ID = "echo-saved-toast"
+const THOUGHT_PROMPT_ID = "echo-quick-thought-prompt"
 const ADD_BUTTON_LIFETIME_MS = 10_000
-const SAVED_TOAST_LIFETIME_MS = 1_600
+const THOUGHT_PROMPT_LIFETIME_MS = 8_000
 const ADD_BUTTON_GAP = 8
 const VIEWPORT_MARGIN = 8
 
 // A reloaded unpacked extension can leave DOM from its invalidated content
 // script behind. Remove any previous instance when a live script starts.
 document.getElementById(ADD_BUTTON_ID)?.remove()
-document.getElementById(SAVED_TOAST_ID)?.remove()
+document.getElementById(THOUGHT_PROMPT_ID)?.remove()
 
 const sourceLabel = (source?: string) => {
   if (source === "chatgpt") return "ChatGPT"
@@ -122,7 +122,7 @@ const ensureAddButton = () => {
 
       if (response?.ok) {
         hideAddButton()
-        showSavedToast(response.sourceApp)
+        showThoughtPrompt(getSelectionRect(), response.echoId, response.sourceApp)
         return
       }
 
@@ -217,50 +217,149 @@ const hideAddButton = () => {
   }
 }
 
-const removeSavedToast = () => {
-  if (savedToastExpiry != null) {
-    window.clearTimeout(savedToastExpiry)
-    savedToastExpiry = null
+const clearThoughtPromptExpiry = () => {
+  if (thoughtPromptExpiry != null) {
+    window.clearTimeout(thoughtPromptExpiry)
+    thoughtPromptExpiry = null
   }
-  savedToast?.remove()
-  savedToast = null
 }
 
-const showSavedToast = (sourceApp?: string) => {
-  removeSavedToast()
+const removeThoughtPrompt = () => {
+  clearThoughtPromptExpiry()
+  thoughtPrompt?.remove()
+  thoughtPrompt = null
+}
 
-  const toast = document.createElement("div")
-  toast.id = SAVED_TOAST_ID
-  toast.textContent = `已保存 · 来自 ${sourceLabel(sourceApp)}`
-  toast.setAttribute("role", "status")
-  toast.style.cssText = [
+const scheduleThoughtPromptExpiry = () => {
+  clearThoughtPromptExpiry()
+  thoughtPromptExpiry = window.setTimeout(
+    removeThoughtPrompt,
+    THOUGHT_PROMPT_LIFETIME_MS
+  )
+}
+
+// Optional one-line thought right after Collect. Auto-dismisses if ignored;
+// focusing the input pauses the timer so typing is never cut off.
+const showThoughtPrompt = (
+  rect: DOMRect | null,
+  echoId?: string,
+  sourceApp?: string
+) => {
+  if (!echoId) return
+
+  const existingInput = thoughtPrompt?.querySelector("input")
+  if (existingInput instanceof HTMLInputElement && existingInput.value.trim()) {
+    return
+  }
+  removeThoughtPrompt()
+
+  const prompt = document.createElement("div")
+  prompt.id = THOUGHT_PROMPT_ID
+  prompt.style.cssText = [
     "position:fixed",
     "z-index:2147483647",
-    "left:50%",
-    "bottom:24px",
-    "transform:translateX(-50%)",
-    "padding:7px 11px",
-    "border-radius:999px",
-    "background:rgba(25,28,35,0.94)",
-    "color:#ffffff",
-    "font:600 12px Inter,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",
-    "box-shadow:0 4px 12px rgba(25,28,35,0.2)",
-    "pointer-events:none",
-    "white-space:nowrap"
+    "display:flex",
+    "align-items:center",
+    "gap:8px",
+    "width:min(340px,calc(100vw - 24px))",
+    "padding:8px",
+    "border:1px solid rgba(193,198,214,0.95)",
+    "border-radius:8px",
+    "background:#ffffff",
+    "color:#191c23",
+    "font:500 12px Inter,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",
+    "box-shadow:0 6px 18px rgba(25,28,35,0.28)",
+    "box-sizing:border-box"
   ].join(";")
 
-  document.body.appendChild(toast)
-  savedToast = toast
-  toast.animate(
-    [
-      { opacity: 0, transform: "translate(-50%, 4px)" },
-      { opacity: 1, transform: "translate(-50%, 0)", offset: 0.18 },
-      { opacity: 1, transform: "translate(-50%, 0)", offset: 0.82 },
-      { opacity: 0, transform: "translate(-50%, 4px)" }
-    ],
-    { duration: SAVED_TOAST_LIFETIME_MS, easing: "ease-out" }
-  )
-  savedToastExpiry = window.setTimeout(removeSavedToast, SAVED_TOAST_LIFETIME_MS)
+  const label = document.createElement("span")
+  label.textContent = `已保存 · ${sourceLabel(sourceApp)}`
+  label.style.cssText =
+    "color:#1a73e8;font-weight:700;white-space:nowrap;max-width:118px;overflow:hidden;text-overflow:ellipsis"
+
+  const input = document.createElement("input")
+  input.type = "text"
+  input.placeholder = "补一句想法..."
+  input.setAttribute("aria-label", "补一句想法")
+  input.style.cssText = [
+    "min-width:0",
+    "flex:1",
+    "border:0",
+    "outline:0",
+    "background:transparent",
+    "color:#191c23",
+    "font:inherit"
+  ].join(";")
+
+  const save = document.createElement("button")
+  save.type = "button"
+  save.textContent = "保存"
+  save.disabled = true
+  save.style.cssText = [
+    "border:0",
+    "background:transparent",
+    "color:#1a73e8",
+    "font-family:inherit",
+    "font-size:12px",
+    "font-weight:700",
+    "cursor:pointer",
+    "padding:3px"
+  ].join(";")
+
+  const submitThought = async () => {
+    const thought = input.value.trim()
+    if (!thought || save.disabled) return
+
+    clearThoughtPromptExpiry()
+    save.disabled = true
+    save.textContent = "..."
+
+    try {
+      const response = await chrome.runtime.sendMessage({
+        type: "echo:add-user-thought",
+        echoId,
+        thought
+      })
+      if (!response?.ok) throw new Error(response?.error || "Could not save thought")
+
+      label.textContent = "想法已加上"
+      input.remove()
+      save.remove()
+      window.setTimeout(removeThoughtPrompt, 900)
+    } catch {
+      save.textContent = "重试"
+      save.disabled = false
+      input.focus()
+    }
+  }
+
+  input.addEventListener("input", () => {
+    save.disabled = !input.value.trim()
+  })
+  input.addEventListener("focus", clearThoughtPromptExpiry)
+  input.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault()
+      void submitThought()
+    } else if (event.key === "Escape") {
+      event.preventDefault()
+      removeThoughtPrompt()
+    }
+  })
+  save.addEventListener("click", () => void submitThought())
+  prompt.addEventListener("mousedown", (event) => event.stopPropagation())
+  prompt.append(label, input, save)
+
+  const top = rect ? Math.max(8, rect.top - 52) : 72
+  const left = rect
+    ? Math.min(window.innerWidth - 352, Math.max(12, rect.left))
+    : Math.max(12, window.innerWidth / 2 - 170)
+  prompt.style.top = `${top}px`
+  prompt.style.left = `${Math.max(12, left)}px`
+
+  document.documentElement.appendChild(prompt)
+  thoughtPrompt = prompt
+  scheduleThoughtPromptExpiry()
 }
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
@@ -283,7 +382,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   }
 
   if (message?.type === "echo:show-saved") {
-    showSavedToast(message.sourceApp)
+    showThoughtPrompt(getSelectionRect(), message.echoId, message.sourceApp)
     return
   }
 
@@ -295,6 +394,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
 document.addEventListener("mouseup", (event) => {
   if (addButton && event.target === addButton) return
+  if (thoughtPrompt && thoughtPrompt.contains(event.target as Node)) return
 
   setTimeout(async () => {
     try {
@@ -330,11 +430,17 @@ document.addEventListener("mouseup", (event) => {
 
 document.addEventListener("mousedown", (event) => {
   if (addButton && event.target === addButton) return
+  if (thoughtPrompt && thoughtPrompt.contains(event.target as Node)) return
   hideAddButton()
 })
 
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") hideAddButton()
+  if (event.key === "Escape") {
+    hideAddButton()
+    if (!(thoughtPrompt?.querySelector("input") instanceof HTMLInputElement)) {
+      removeThoughtPrompt()
+    }
+  }
 })
 
 const resumePendingAnchor = async () => {

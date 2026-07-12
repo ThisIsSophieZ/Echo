@@ -146,6 +146,26 @@ describe("Echo related selection", () => {
     expect(analysis.results).toHaveLength(1)
   })
 
+  it("adds selection and candidate intent diagnostics without changing ranking", () => {
+    const analysis = analyzeRelatedEchoes(
+      [
+        echo({
+          id: "material",
+          title: "Procreate 网页动画绘制与切图实操指南",
+          triggerText: "Procreate 画布设定、Animation Assist 和 WebP 导出步骤"
+        })
+      ],
+      "Procreate 画布尺寸和 WebP 导出步骤"
+    )
+
+    expect(analysis.selectionKind).toBe("task-material")
+    expect(analysis.results).toHaveLength(1)
+    expect(analysis.candidates[0]).toMatchObject({
+      echoIntent: "task-material",
+      matchKind: "task-material-recall"
+    })
+  })
+
   it("does not let Tier 2 words create eligibility", () => {
     const analysis = analyzeRelatedEchoes(
       [

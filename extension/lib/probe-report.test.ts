@@ -18,6 +18,8 @@ describe("Probe report", () => {
   it("exports compact evidence and summarizes zero-score candidates", () => {
     const analysis: RelatedEchoAnalysis = {
       selection: "native English checklist",
+      selectionKind: "task-material",
+      selectionKindReason: "selection looks like task material or implementation steps",
       queryTokens: ["native", "english", "checklist"],
       scannedCount: 2,
       acceptedCount: 1,
@@ -28,6 +30,10 @@ describe("Probe report", () => {
           score: 72,
           accepted: true,
           reason: "来源正文中出现相同短语",
+          echoIntent: "task-material",
+          echoIntentReason: "Echo looks like how-to, task steps, or concrete implementation material",
+          matchKind: "task-material-recall",
+          matchKindReason: "task-material selection matched task material",
           strongestField: "来源正文",
           matchedTerms: ["native", "english"],
           details: [
@@ -41,6 +47,10 @@ describe("Probe report", () => {
           accepted: false,
           reason: "没有共同的有效词",
           rejection: "no-overlap",
+          echoIntent: "unknown",
+          echoIntentReason: "no strong Echo intent signal",
+          matchKind: "unknown",
+          matchKindReason: "selection or Echo intent is unknown",
           strongestField: "来源正文",
           matchedTerms: [],
           details: ["所有字段 BM25：0.00"]
@@ -59,8 +69,11 @@ describe("Probe report", () => {
     expect(report).toContain("# Echo Probe Report · 2026-07-04T00:00:00.000Z")
     expect(report).toContain("native English checklist")
     expect(report).toContain("| 2 | 1 | 1 | 1 |")
+    expect(report).toContain("**Selection kind:** task-material")
     expect(report).toContain("### 1. [72] Copy review")
     expect(report).toContain("- Decision: accepted")
+    expect(report).toContain("- Echo intent: task-material")
+    expect(report).toContain("- Match kind: task-material-recall")
     expect(report).toContain("BM25 4.50 + 短语奖励 1.25")
     expect(report).not.toContain("No evidence item")
     expect(report).not.toContain("所有字段 BM25：0.00")
