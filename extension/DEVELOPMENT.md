@@ -1053,4 +1053,14 @@ Dogfood：感觉不能取消 pin。
 `isEditableSelection` 读取任意 `HTMLInputElement.selectionStart` 时，checkbox /
 button 等类型会抛 `InvalidStateError`，扩展 Errors 面板刷屏。
 
-处理：只把文本类 input 当打字表面；读 `selectionStart/End` 包 try/catch。
+处理：只把文本类 input 当打字表面；读 `selectionStart/End` 包 try/catch；
+editable / mouseup 全路径吞掉异常。
+
+### 2026-07-15：Errors 仍出现但可勉强使用
+
+非致命竞态与宿主限制：
+
+- `onInstalled` / `onStartup` 同时 `contextMenus.create` 会 duplicate id。
+- 部分页面 `Element.animate` / `scrollIntoView` 会抛错。
+
+处理：菜单重建 await + try/catch；高亮与 Add 按钮动画包保护。

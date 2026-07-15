@@ -2,13 +2,19 @@ import type { EchoMessageFingerprint } from "~capture/types"
 
 const FINGERPRINT_EDGE_LENGTH = 320
 const ZERO_WIDTH_CHARACTERS = /[\u200b-\u200d\u2060\ufeff]/g
-const EMOJI_CHARACTERS = /\p{Extended_Pictographic}/gu
+
+const stripEmojiCharacters = (value: string) => {
+  try {
+    return value.replace(/\p{Extended_Pictographic}/gu, "")
+  } catch {
+    return value
+  }
+}
 
 export const normalizeMessageText = (value: string) =>
-  value
-    .normalize("NFKC")
-    .replace(ZERO_WIDTH_CHARACTERS, "")
-    .replace(EMOJI_CHARACTERS, "")
+  stripEmojiCharacters(
+    value.normalize("NFKC").replace(ZERO_WIDTH_CHARACTERS, "")
+  )
     .replace(/\u00a0/g, " ")
     .replace(/\s+/g, " ")
     .trim()

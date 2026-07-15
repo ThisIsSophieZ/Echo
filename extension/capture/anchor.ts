@@ -174,22 +174,31 @@ const findAnchorTarget = async (anchor: EchoAnchor) => {
 }
 
 const highlightTarget = (target: Element) => {
-  target.scrollIntoView({
-    behavior: "smooth",
-    block: "center"
-  })
-  target.animate(
-    [
-      { backgroundColor: "rgba(26, 115, 232, 0)" },
-      { backgroundColor: "rgba(26, 115, 232, 0.24)", offset: 0.2 },
-      { backgroundColor: "rgba(26, 115, 232, 0.24)", offset: 0.75 },
-      { backgroundColor: "rgba(26, 115, 232, 0)" }
-    ],
-    {
-      duration: 2800,
-      easing: "ease-out"
-    }
-  )
+  try {
+    target.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    })
+  } catch {
+    // Some hosts reject programmatic scroll; locating still succeeded.
+  }
+
+  try {
+    target.animate(
+      [
+        { backgroundColor: "rgba(26, 115, 232, 0)" },
+        { backgroundColor: "rgba(26, 115, 232, 0.24)", offset: 0.2 },
+        { backgroundColor: "rgba(26, 115, 232, 0.24)", offset: 0.75 },
+        { backgroundColor: "rgba(26, 115, 232, 0)" }
+      ],
+      {
+        duration: 2800,
+        easing: "ease-out"
+      }
+    )
+  } catch {
+    // Web Animations may be unavailable or blocked by the host page.
+  }
 }
 
 export const locateEchoAnchor = async (

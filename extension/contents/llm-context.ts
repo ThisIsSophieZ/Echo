@@ -195,18 +195,23 @@ const showAddButton = (rect: DOMRect, selectionCapture: SelectionCapture) => {
   button.style.display = "block"
 
   buttonExpiry?.cancel()
-  buttonExpiry = button.animate(
-    [
-      { opacity: 1, pointerEvents: "auto" },
-      { opacity: 1, pointerEvents: "auto", offset: 0.9 },
-      { opacity: 0, pointerEvents: "none" }
-    ],
-    {
-      duration: ADD_BUTTON_LIFETIME_MS,
-      fill: "forwards"
-    }
-  )
-  buttonExpiry.onfinish = hideAddButton
+  try {
+    buttonExpiry = button.animate(
+      [
+        { opacity: 1, pointerEvents: "auto" },
+        { opacity: 1, pointerEvents: "auto", offset: 0.9 },
+        { opacity: 0, pointerEvents: "none" }
+      ],
+      {
+        duration: ADD_BUTTON_LIFETIME_MS,
+        fill: "forwards"
+      }
+    )
+    buttonExpiry.onfinish = hideAddButton
+  } catch {
+    buttonExpiry = null
+    window.setTimeout(hideAddButton, ADD_BUTTON_LIFETIME_MS)
+  }
 }
 
 const hideAddButton = () => {
@@ -384,30 +389,44 @@ const showThoughtPrompt = (
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message?.type === "echo:get-page-context") {
-    getSelectionCapture().then((selectionCapture) =>
-      sendResponse({
-        title: document.title,
-        url: location.href,
-        selection: selectionCapture?.plainText ?? ""
-      })
-    )
+    getSelectionCapture()
+      .then((selectionCapture) =>
+        sendResponse({
+          title: document.title,
+          url: location.href,
+          selection: selectionCapture?.plainText ?? ""
+        })
+      )
+      .catch(() =>
+        sendResponse({
+          title: document.title,
+          url: location.href,
+          selection: ""
+        })
+      )
     return true
   }
 
   if (message?.type === "echo:get-selection-capture") {
-    getSelectionCapture().then((selectionCapture) =>
-      sendResponse({ selectionCapture })
-    )
+    getSelectionCapture()
+      .then((selectionCapture) => sendResponse({ selectionCapture }))
+      .catch(() => sendResponse({ selectionCapture: null }))
     return true
   }
 
   if (message?.type === "echo:show-saved") {
-    showThoughtPrompt(getSelectionRect(), message.echoId, message.sourceApp)
+    try {
+      showThoughtPrompt(getSelectionRect(), message.echoId, message.sourceApp)
+    } catch {
+      // Page selection may already be gone when the save acknowledgement arrives.
+    }
     return
   }
 
   if (message?.type === "echo:locate-anchor" && message.anchor) {
-    locateEchoAnchor(message.anchor).then((found) => sendResponse({ found }))
+    locateEchoAnchor(message.anchor)
+      .then((found) => sendResponse({ found }))
+      .catch(() => sendResponse({ found: false }))
     return true
   }
 })

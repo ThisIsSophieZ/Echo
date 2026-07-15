@@ -62,12 +62,16 @@ const flashSavedOnTab = (
 }
 
 const rebuildContextMenu = async () => {
-  await chrome.contextMenus.removeAll()
-  chrome.contextMenus.create({
-    id: ADD_SELECTION_MENU_ID,
-    title: "Add selection to Echo",
-    contexts: ["selection"]
-  })
+  try {
+    await chrome.contextMenus.removeAll()
+    await chrome.contextMenus.create({
+      id: ADD_SELECTION_MENU_ID,
+      title: "Add selection to Echo",
+      contexts: ["selection"]
+    })
+  } catch {
+    // onInstalled + onStartup can race; duplicate menu ids are non-fatal.
+  }
 }
 
 const addSelectionAsEcho = async (
@@ -181,15 +185,17 @@ const openSourceAtAnchor = async (url: string, anchor: EchoAnchor) => {
 }
 
 chrome.runtime.onInstalled.addListener(() => {
+  // Avoid console.error here: Chrome surfaces those on the extension Errors page
+  // even when the failure is non-fatal and the extension still works.
   chrome.sidePanel
     .setPanelBehavior({ openPanelOnActionClick: true })
-    .catch((error) => console.error("Failed to enable side panel behavior", error))
+    .catch(() => {})
 
-  rebuildContextMenu().catch((error) => console.error("Failed to build context menu", error))
+  rebuildContextMenu().catch(() => {})
 })
 
 chrome.runtime.onStartup.addListener(() => {
-  rebuildContextMenu().catch((error) => console.error("Failed to build context menu", error))
+  rebuildContextMenu().catch(() => {})
 })
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
@@ -203,7 +209,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
       addSelectionAsEcho(selection.plainText, selection.capture, tab, info.pageUrl)
     )
     .then((echo) => flashSavedOnTab(tab?.id, echo.id, echo.sourceApp))
-    .catch((error) => console.error("Failed to add selection to Echo", error))
+    .catch(() => {})
 })
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
