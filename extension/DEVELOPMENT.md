@@ -1047,3 +1047,10 @@ Dogfood：感觉不能取消 pin。
 
 处理：去掉死区宽度；复制/删除改为图钉左侧绝对定位展开；图钉始终 `z-20`；
 侧栏对 pin 做乐观更新。已 pin 时仅把图标换成 `PinOff`。
+
+### 2026-07-15：content script 在非文本 input 上报错
+
+`isEditableSelection` 读取任意 `HTMLInputElement.selectionStart` 时，checkbox /
+button 等类型会抛 `InvalidStateError`，扩展 Errors 面板刷屏。
+
+处理：只把文本类 input 当打字表面；读 `selectionStart/End` 包 try/catch。

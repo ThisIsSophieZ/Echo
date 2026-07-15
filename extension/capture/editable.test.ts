@@ -10,8 +10,12 @@ describe("editable selection guards", () => {
     window.getSelection()?.removeAllRanges()
   })
 
-  it("treats inputs, textareas, and role=textbox as editable", () => {
+  it("treats textual inputs, textareas, and role=textbox as editable", () => {
     const input = document.createElement("input")
+    const search = document.createElement("input")
+    search.type = "search"
+    const checkbox = document.createElement("input")
+    checkbox.type = "checkbox"
     const textarea = document.createElement("textarea")
     const searchRole = document.createElement("div")
     searchRole.setAttribute("role", "searchbox")
@@ -20,10 +24,22 @@ describe("editable selection guards", () => {
     const article = document.createElement("article")
 
     expect(isEditableElement(input)).toBe(true)
+    expect(isEditableElement(search)).toBe(true)
+    expect(isEditableElement(checkbox)).toBe(false)
     expect(isEditableElement(textarea)).toBe(true)
     expect(isEditableElement(searchRole)).toBe(true)
     expect(isEditableElement(textbox)).toBe(true)
     expect(isEditableElement(article)).toBe(false)
+  })
+
+  it("does not throw when active element is a non-textual input", () => {
+    const checkbox = document.createElement("input")
+    checkbox.type = "checkbox"
+    document.body.appendChild(checkbox)
+    checkbox.focus()
+
+    expect(() => isEditableSelection()).not.toThrow()
+    expect(isEditableSelection()).toBe(false)
   })
 
   it("detects a selection inside a search input", () => {

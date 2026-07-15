@@ -1,11 +1,17 @@
 const EDITABLE_SELECTOR = [
-  "input",
   "textarea",
   "select",
+  "input:not([type])",
+  'input[type="text"]',
+  'input[type="search"]',
+  'input[type="password"]',
+  'input[type="email"]',
+  'input[type="url"]',
+  'input[type="tel"]',
+  'input[type="number"]',
   "[contenteditable='true']",
   "[contenteditable='']",
   "[contenteditable=plaintext-only]",
-  "[contenteditable]",
   "[role='textbox']",
   "[role='searchbox']",
   "[role='combobox']",
@@ -14,10 +20,25 @@ const EDITABLE_SELECTOR = [
   ".ProseMirror"
 ].join(", ")
 
+const TEXTUAL_INPUT_TYPES = new Set([
+  "",
+  "text",
+  "search",
+  "password",
+  "email",
+  "url",
+  "tel",
+  "number"
+])
+
 const elementFromNode = (node: Node | null) => {
   if (!node) return null
   return node instanceof Element ? node : node.parentElement
 }
+
+const isTextualInput = (element: Element): element is HTMLInputElement =>
+  element instanceof HTMLInputElement &&
+  TEXTUAL_INPUT_TYPES.has(element.type.toLowerCase())
 
 /** True for search boxes, chat composers, and other typing surfaces. */
 export const isEditableElement = (
@@ -25,11 +46,11 @@ export const isEditableElement = (
 ): boolean => {
   if (!element) return false
 
-  if (
-    element instanceof HTMLInputElement ||
-    element instanceof HTMLTextAreaElement ||
-    element instanceof HTMLSelectElement
-  ) {
+  if (element instanceof HTMLTextAreaElement || element instanceof HTMLSelectElement) {
+    return true
+  }
+
+  if (isTextualInput(element)) {
     return true
   }
 
@@ -41,16 +62,18 @@ export const isEditableElement = (
 }
 
 const hasNativeFormSelection = (element: Element): boolean => {
-  if (
-    !(element instanceof HTMLInputElement) &&
-    !(element instanceof HTMLTextAreaElement)
-  ) {
+  if (!(element instanceof HTMLTextAreaElement) && !isTextualInput(element)) {
     return false
   }
 
-  const start = element.selectionStart
-  const end = element.selectionEnd
-  return typeof start === "number" && typeof end === "number" && start !== end
+  // Non-text inputs throw InvalidStateError when reading selectionStart/End.
+  try {
+    const start = element.selectionStart
+    const end = element.selectionEnd
+    return typeof start === "number" && typeof end === "number" && start !== end
+  } catch {
+    return false
+  }
 }
 
 /** True when the current selection lives inside a typing surface. */
