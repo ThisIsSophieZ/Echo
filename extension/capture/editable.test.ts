@@ -69,6 +69,23 @@ describe("editable selection guards", () => {
     expect(isEditableSelection(selection ?? undefined)).toBe(true)
   })
 
+  it("ignores a collapsed caret inside contenteditable", () => {
+    const composer = document.createElement("div")
+    composer.setAttribute("contenteditable", "true")
+    composer.textContent = "只有光标没有划词"
+    document.body.appendChild(composer)
+    composer.focus()
+
+    const range = document.createRange()
+    range.setStart(composer.firstChild as Text, 0)
+    range.collapse(true)
+    const selection = window.getSelection()
+    selection?.removeAllRanges()
+    selection?.addRange(range)
+
+    expect(isEditableSelection(selection ?? undefined)).toBe(false)
+  })
+
   it("allows selection in normal page content", () => {
     const paragraph = document.createElement("p")
     paragraph.textContent = "普通正文划词应该触发"

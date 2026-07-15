@@ -413,56 +413,61 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 })
 
 document.addEventListener("mouseup", (event) => {
-  if (addButton && event.target === addButton) return
-  if (thoughtPrompt && thoughtPrompt.contains(event.target as Node)) return
-  // Search / composer / textbox selections must never drive Probe or Add to Echo.
-  if (
-    (event.target instanceof Element && isEditableElement(event.target)) ||
-    isEditableSelection()
-  ) {
-    hideAddButton()
-    return
-  }
-
-  setTimeout(async () => {
-    try {
-      if (isEditableSelection()) {
-        hideAddButton()
-        return
-      }
-
-      const plainText = getSelectionPlainText()
-      if (!plainText) {
-        hideAddButton()
-        publishSelectionContext(null)
-        return
-      }
-
-      publishSelectionContext(plainText)
-
-      const selectionCapture = await getSelectionCapture()
-      if (!selectionCapture) {
-        hideAddButton()
-        return
-      }
-
-      const rect = getSelectionRect()
-      if (!rect) {
-        hideAddButton()
-        return
-      }
-
-      showAddButton(rect, selectionCapture)
-    } catch {
-      if (isEditableSelection()) {
-        hideAddButton()
-        return
-      }
-      const plainText = getSelectionPlainText()
-      publishSelectionContext(plainText)
+  try {
+    if (addButton && event.target === addButton) return
+    if (thoughtPrompt && thoughtPrompt.contains(event.target as Node)) return
+    // Search / composer / textbox selections must never drive Probe or Add to Echo.
+    if (
+      (event.target instanceof Element && isEditableElement(event.target)) ||
+      isEditableSelection()
+    ) {
       hideAddButton()
+      return
     }
-  }, 10)
+
+    setTimeout(async () => {
+      try {
+        if (isEditableSelection()) {
+          hideAddButton()
+          return
+        }
+
+        const plainText = getSelectionPlainText()
+        if (!plainText) {
+          hideAddButton()
+          publishSelectionContext(null)
+          return
+        }
+
+        publishSelectionContext(plainText)
+
+        const selectionCapture = await getSelectionCapture()
+        if (!selectionCapture) {
+          hideAddButton()
+          return
+        }
+
+        const rect = getSelectionRect()
+        if (!rect) {
+          hideAddButton()
+          return
+        }
+
+        showAddButton(rect, selectionCapture)
+      } catch {
+        hideAddButton()
+        try {
+          if (!isEditableSelection()) {
+            publishSelectionContext(getSelectionPlainText())
+          }
+        } catch {
+          // Never let selection probing crash the content script.
+        }
+      }
+    }, 10)
+  } catch {
+    hideAddButton()
+  }
 })
 
 document.addEventListener("mousedown", (event) => {

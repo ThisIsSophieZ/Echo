@@ -38,27 +38,34 @@ const elementFromNode = (node: Node | null) => {
 
 const isTextualInput = (element: Element): element is HTMLInputElement =>
   element instanceof HTMLInputElement &&
-  TEXTUAL_INPUT_TYPES.has(element.type.toLowerCase())
+  TEXTUAL_INPUT_TYPES.has((element.type || "").toLowerCase())
 
 /** True for search boxes, chat composers, and other typing surfaces. */
 export const isEditableElement = (
   element: Element | null | undefined
 ): boolean => {
-  if (!element) return false
+  try {
+    if (!element) return false
 
-  if (element instanceof HTMLTextAreaElement || element instanceof HTMLSelectElement) {
-    return true
+    if (
+      element instanceof HTMLTextAreaElement ||
+      element instanceof HTMLSelectElement
+    ) {
+      return true
+    }
+
+    if (isTextualInput(element)) {
+      return true
+    }
+
+    if (element instanceof HTMLElement && element.isContentEditable) {
+      return true
+    }
+
+    return Boolean(element.closest(EDITABLE_SELECTOR))
+  } catch {
+    return false
   }
-
-  if (isTextualInput(element)) {
-    return true
-  }
-
-  if (element instanceof HTMLElement && element.isContentEditable) {
-    return true
-  }
-
-  return Boolean(element.closest(EDITABLE_SELECTOR))
 }
 
 const hasNativeFormSelection = (element: Element): boolean => {
@@ -80,26 +87,38 @@ const hasNativeFormSelection = (element: Element): boolean => {
 export const isEditableSelection = (
   selection = window.getSelection()
 ): boolean => {
-  const active = document.activeElement
-  if (active instanceof Element && isEditableElement(active)) {
+  try {
+    const active = document.activeElement
+
     // Inputs/textareas keep selection outside `window.getSelection()`.
-    if (hasNativeFormSelection(active)) return true
-
-    if (selection && selection.rangeCount > 0) {
-      if (
-        !selection.anchorNode ||
-        active === selection.anchorNode ||
-        active.contains(selection.anchorNode)
-      ) {
-        return true
-      }
+    if (active instanceof Element && hasNativeFormSelection(active)) {
+      return true
     }
+
+    // Caret-only (collapsed) selections are not "划词".
+    if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
+      return false
+    }
+
+    if (
+      isEditableElement(elementFromNode(selection.anchorNode)) ||
+      isEditableElement(elementFromNode(selection.focusNode))
+    ) {
+      return true
+    }
+
+    // Focused contenteditable whose non-collapsed selection lives inside it.
+    if (
+      active instanceof Element &&
+      isEditableElement(active) &&
+      selection.anchorNode &&
+      active.contains(selection.anchorNode)
+    ) {
+      return true
+    }
+
+    return false
+  } catch {
+    return false
   }
-
-  if (!selection || selection.rangeCount === 0) return false
-
-  return (
-    isEditableElement(elementFromNode(selection.anchorNode)) ||
-    isEditableElement(elementFromNode(selection.focusNode))
-  )
 }
