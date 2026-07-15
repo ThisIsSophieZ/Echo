@@ -165,7 +165,7 @@ export const EchoCard = ({
         </div>
       </div>
 
-      <div className="action-zone absolute right-1 top-1 z-10 flex h-10 w-28 items-start justify-end p-1">
+      <div className="action-zone absolute right-1 top-1 z-10 flex items-start justify-end p-1">
         <EchoCardActions
           echo={echo}
           onAddThought={() => setIsAddingThought(true)}

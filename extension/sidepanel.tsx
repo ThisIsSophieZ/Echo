@@ -8,11 +8,18 @@ import {
   createEcho,
   deleteEcho,
   listRecentEchoes,
+  nextPinStatus,
   restoreEcho,
   togglePin,
   type Echo
 } from "~db/echoes"
-import { ECHO_LIST_CHANGED_KEY, notifyEchoListChanged } from "~lib/echo-events"
+import {
+  ECHO_LIST_CHANGED_KEY,
+  PENDING_USER_THOUGHT_KEY,
+  clearPendingUserThought,
+  notifyEchoListChanged,
+  readPendingUserThought
+} from "~lib/echo-events"
 import { analyzeRelatedEchoes } from "~lib/echo-related"
 import { searchEchoes } from "~lib/echo-search"
 import { detectSourceApp } from "~lib/source-app"
@@ -135,6 +142,11 @@ const SidePanel = () => {
   }
 
   const refreshEchoes = async () => {
+    const pending = await readPendingUserThought()
+    if (pending) {
+      const applied = await addUserThought(pending.echoId, pending.thought)
+      if (applied) await clearPendingUserThought()
+    }
     setEchoes(await listRecentEchoes())
   }
 
@@ -226,8 +238,13 @@ const SidePanel = () => {
       areaName: string
     ) => {
       if (areaName !== "local") return
-      if (!changes[ECHO_LIST_CHANGED_KEY]) return
-      refreshEchoes()
+      if (
+        !changes[ECHO_LIST_CHANGED_KEY] &&
+        !changes[PENDING_USER_THOUGHT_KEY]
+      ) {
+        return
+      }
+      void refreshEchoes()
     }
 
     chrome.storage.onChanged.addListener(handleEchoListChanged)
@@ -282,6 +299,16 @@ const SidePanel = () => {
   }
 
   const handleTogglePin = async (id: string) => {
+    const current = echoes.find((echo) => echo.id === id)
+    if (current) {
+      const nextStatus = nextPinStatus(current)
+      setEchoes((prev) =>
+        prev.map((echo) =>
+          echo.id === id ? { ...echo, status: nextStatus } : echo
+        )
+      )
+    }
+
     await togglePin(id)
     await refreshEchoes()
     await notifyEchoListChanged()

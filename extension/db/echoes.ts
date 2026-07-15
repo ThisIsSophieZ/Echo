@@ -105,25 +105,49 @@ export const addUserThought = async (id: string, userThought: string) => {
   const thought = userThought.trim()
   if (!thought) return false
 
+  const existing = await db.sparks.get(id)
+  if (!existing) return false
+
   const updated = await db.sparks.update(id, {
     userThought: thought,
-    status: "confirmed"
+    status: existing.status === "pinned" ? "pinned" : "confirmed"
   })
 
-  return updated > 0
+  if (updated > 0) return true
+
+  // Dexie update can return 0 under MV3 SW reconnect races even when the key
+  // exists; fall back to a full put of the same record.
+  await db.sparks.put({
+    ...normalizeEcho(existing),
+    userThought: thought,
+    status: existing.status === "pinned" ? "pinned" : "confirmed"
+  })
+  return true
+}
+
+/** Next status when toggling pin. Unpin keeps confirmed if a thought exists. */
+export const nextPinStatus = (echo: Pick<Echo, "status" | "userThought">): EchoStatus => {
+  if (echo.status === "pinned") {
+    return echo.userThought?.trim() ? "confirmed" : "raw"
+  }
+  return "pinned"
 }
 
 // Toggle pin. Unpinning restores a sensible status: keep it a thought-bearing
 // "confirmed" echo if the user wrote something, otherwise back to "raw".
+// Always put the full record — Dexie update can return 0 under MV3 reconnect
+// races and leave pin/unpin looking like a no-op.
 export const togglePin = async (id: string) => {
   const record = await db.sparks.get(id)
   if (!record) return
 
   const current = normalizeEcho(record)
-  const next: EchoStatus =
-    current.status === "pinned" ? (current.userThought ? "confirmed" : "raw") : "pinned"
+  const next = nextPinStatus(current)
 
-  await db.sparks.update(id, { status: next })
+  await db.sparks.put({
+    ...current,
+    status: next
+  })
   return next
 }
 

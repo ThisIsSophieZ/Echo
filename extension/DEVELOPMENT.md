@@ -1009,3 +1009,41 @@ Dogfood 反馈：卡片右上角「补想法」不够顺手；收藏当下常有
 
 - `npm test`：6 files, 37 tests passed。
 - `npm run build` completed successfully.
+
+### 2026-07-14：修复想法框保存失败（显示「重试」）
+
+Dogfood：收藏后输入框可出，输入后点保存却变成「重试」。
+
+处理：
+
+- `addUserThought` 先 `get`，`update` 失败则整行 `put`（应对 MV3 SW
+  下 update 返回 0 的竞态）。
+- 补想法先写入 `chrome.storage.local` 队列；Dexie 成功则清队列。若 SW
+  暂时写不上，仍回 `ok`，由已打开的 Side Panel 在 `refreshEchoes` 时应用。
+- 输入框对 extension context invalidated 提示「刷新页」。
+
+验证：见本步 `npm test` / `npm run build`。
+
+### 2026-07-14：忽略输入框内选区
+
+Dogfood：在搜索框 / 输入框里选中自己刚打的字，也会驱动 Probe / Add to Echo。
+
+处理：
+
+- 新增 `capture/editable.ts`：识别 `input` / `textarea` / `contenteditable`、
+  `role=textbox|searchbox|combobox`、`#prompt-textarea`、`.ProseMirror` 等打字表面。
+- `getSelectionPlainText` / `getSelectionCapture` 对可编辑选区返回 null。
+- content script `mouseup` 在可编辑目标或可编辑选区上直接跳过，不发布选区。
+
+消息区正文划词不受影响。
+
+### 2026-07-15：Pin 取消难点到
+
+Dogfood：感觉不能取消 pin。
+
+原因：卡片右上角 `action-zone` 留了约 `7rem` 空白点击热区，且 hover
+操作组与图钉并排占位；点到空白区域不会触发 `togglePin`，看起来像「取消不了」。
+（数据层 `togglePin` / `nextPinStatus` 本身是通的。）
+
+处理：去掉死区宽度；复制/删除改为图钉左侧绝对定位展开；图钉始终 `z-20`；
+侧栏对 pin 做乐观更新。已 pin 时仅把图标换成 `PinOff`。

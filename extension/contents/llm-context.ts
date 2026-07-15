@@ -3,7 +3,9 @@ import type { PlasmoCSConfig } from "plasmo"
 import { locateEchoAnchor } from "~capture/anchor"
 import {
   getSelectionCapture,
-  getSelectionPlainText
+  getSelectionPlainText,
+  isEditableElement,
+  isEditableSelection
 } from "~capture/selection"
 import type { SelectionCapture } from "~capture/types"
 
@@ -310,24 +312,42 @@ const showThoughtPrompt = (
     const thought = input.value.trim()
     if (!thought || save.disabled) return
 
+    const runtime = globalThis.chrome?.runtime
+    if (!runtime?.sendMessage) {
+      save.textContent = "刷新页"
+      save.disabled = false
+      return
+    }
+
     clearThoughtPromptExpiry()
     save.disabled = true
     save.textContent = "..."
 
     try {
-      const response = await chrome.runtime.sendMessage({
+      const response = await runtime.sendMessage({
         type: "echo:add-user-thought",
         echoId,
         thought
       })
-      if (!response?.ok) throw new Error(response?.error || "Could not save thought")
+      if (!response?.ok) {
+        throw new Error(response?.error || "Could not save thought")
+      }
 
       label.textContent = "想法已加上"
       input.remove()
       save.remove()
       window.setTimeout(removeThoughtPrompt, 900)
-    } catch {
-      save.textContent = "重试"
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      // Extension reload invalidates this content script mid-prompt.
+      if (
+        message.includes("Extension context invalidated") ||
+        message.includes("context invalidated")
+      ) {
+        save.textContent = "刷新页"
+      } else {
+        save.textContent = "重试"
+      }
       save.disabled = false
       input.focus()
     }
@@ -395,9 +415,22 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 document.addEventListener("mouseup", (event) => {
   if (addButton && event.target === addButton) return
   if (thoughtPrompt && thoughtPrompt.contains(event.target as Node)) return
+  // Search / composer / textbox selections must never drive Probe or Add to Echo.
+  if (
+    (event.target instanceof Element && isEditableElement(event.target)) ||
+    isEditableSelection()
+  ) {
+    hideAddButton()
+    return
+  }
 
   setTimeout(async () => {
     try {
+      if (isEditableSelection()) {
+        hideAddButton()
+        return
+      }
+
       const plainText = getSelectionPlainText()
       if (!plainText) {
         hideAddButton()
@@ -421,6 +454,10 @@ document.addEventListener("mouseup", (event) => {
 
       showAddButton(rect, selectionCapture)
     } catch {
+      if (isEditableSelection()) {
+        hideAddButton()
+        return
+      }
       const plainText = getSelectionPlainText()
       publishSelectionContext(plainText)
       hideAddButton()

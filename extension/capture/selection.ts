@@ -1,4 +1,5 @@
 import { createEchoAnchor } from "~capture/anchor"
+import { isEditableSelection } from "~capture/editable"
 import {
   analyzeFragment,
   fragmentToMarkdown,
@@ -10,9 +11,12 @@ import {
 } from "~capture/title-resolver"
 import type { SelectionCapture } from "~capture/types"
 
+export { isEditableElement, isEditableSelection } from "~capture/editable"
+
 export const getSelectionPlainText = (): string | null => {
   const selection = window.getSelection()
   if (!selection || selection.isCollapsed || selection.rangeCount === 0) return null
+  if (isEditableSelection(selection)) return null
 
   const plainText = selection.toString().replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim()
   return plainText || null
@@ -21,6 +25,7 @@ export const getSelectionPlainText = (): string | null => {
 export const getSelectionCapture = async (): Promise<SelectionCapture | null> => {
   const selection = window.getSelection()
   if (!selection || selection.isCollapsed || selection.rangeCount === 0) return null
+  if (isEditableSelection(selection)) return null
 
   const range = selection.getRangeAt(0)
   const fragment = document.createElement("div")

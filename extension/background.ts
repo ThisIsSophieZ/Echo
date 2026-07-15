@@ -2,7 +2,11 @@ export {}
 
 import { addUserThought, createEcho } from "~db/echoes"
 import type { EchoAnchor, EchoCapture, SelectionCapture } from "~capture/types"
-import { notifyEchoListChanged } from "~lib/echo-events"
+import {
+  clearPendingUserThought,
+  enqueuePendingUserThought,
+  notifyEchoListChanged
+} from "~lib/echo-events"
 import { detectSourceApp } from "~lib/source-app"
 
 const ADD_SELECTION_MENU_ID = "echo_add_selection"
@@ -249,14 +253,36 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       return false
     }
 
-    addUserThought(echoId, thought)
-      .then(async (updated) => {
-        if (updated) await notifyEchoListChanged()
-        sendResponse({ ok: updated })
-      })
-      .catch((error) =>
-        sendResponse({ ok: false, error: String(error?.message ?? error) })
-      )
+    void (async () => {
+      try {
+        // Always park the thought in chrome.storage first. The side panel (or a
+        // later SW wake) can apply it if this Dexie write races under MV3.
+        await enqueuePendingUserThought(echoId, thought)
+
+        let updated = await addUserThought(echoId, thought)
+        if (!updated) {
+          await new Promise((resolve) => setTimeout(resolve, 80))
+          updated = await addUserThought(echoId, thought)
+        }
+
+        if (updated) {
+          await clearPendingUserThought()
+          await notifyEchoListChanged()
+          sendResponse({ ok: true })
+          return
+        }
+
+        // Dexie could not see the row yet; storage queue + list notify lets the
+        // open side panel apply the same patch against the shared IDB.
+        await notifyEchoListChanged()
+        sendResponse({ ok: true, deferred: true })
+      } catch (error) {
+        sendResponse({
+          ok: false,
+          error: String((error as Error)?.message ?? error)
+        })
+      }
+    })()
     return true
   }
 

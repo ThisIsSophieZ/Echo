@@ -33,9 +33,15 @@ body {
   border-radius: 10px;
 }
 
+/* Invisible until hover, and must not steal clicks from the always-visible pin. */
+.action-reveal {
+  pointer-events: none;
+}
+
 .action-zone:hover .action-reveal,
 .action-zone:focus-within .action-reveal {
   opacity: 1;
+  pointer-events: auto;
 }
 
 .chrome-input:focus {
