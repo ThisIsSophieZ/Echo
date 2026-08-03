@@ -42,6 +42,9 @@ Two capture paths, two meanings:
 - Structured selections also keep a Markdown representation, compact preview,
   structure metrics, and a text anchor back to the source.
 - Data lives in IndexedDB (`echo-sidebar` database, `sparks` object store).
+- The header backup menu exports every Echo as a versioned JSON file and can
+  import it later by ID. Export before deleting the extension or changing
+  Chrome profiles; IndexedDB is local to one extension ID and one profile.
 - An unfinished Keep draft is restored from `chrome.storage.local` after the
   side panel closes or Chrome restarts. Saving clears the draft.
 
@@ -264,6 +267,10 @@ npm run dev
 ```
 
 Then load the generated development build from Chrome's extensions page.
+Keep loading the same generated directory during development. Deleting an
+unpacked extension removes its Chrome-managed IndexedDB even when its extension
+ID is unchanged; export a JSON backup before deletion or moving to another
+Chrome profile.
 
 ## Production build
 
