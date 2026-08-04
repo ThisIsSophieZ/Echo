@@ -29,8 +29,24 @@
 
 | 文件 | 用途 |
 | --- | --- |
+| [interview/Echo-case-study.md](./interview/Echo-case-study.md) | 主面试 Case Study（pivot / 评测 / 不上线决策） |
 | [interview/Echo项目面试证据审计-2026-08.md](./interview/Echo项目面试证据审计-2026-08.md) | 已有/缺失证据、P0 补强 |
 | [interview/职业市场研究与岗位策略-2026-08.md](./interview/职业市场研究与岗位策略-2026-08.md) | 岗位策略与目标画像 |
+
+## 决策记录
+
+Decision Logs 是当前有效的决策摘要；长篇产品讨论保留为原始证据。
+
+| 文件 | 当前决策 |
+| --- | --- |
+| [decisions/001-why-local-first.md](./decisions/001-why-local-first.md) | 为什么默认本地存储、主动导出 |
+| [decisions/002-why-precision-over-recall.md](./decisions/002-why-precision-over-recall.md) | 为什么宁愿沉默也不弱匹配 |
+| [decisions/003-why-vector-is-not-shipped.md](./decisions/003-why-vector-is-not-shipped.md) | 为什么向量与 Hybrid 只留在离线实验 |
+
+## 评测
+
+- 召回 benchmark：[`../evals/recall-benchmark/`](../evals/recall-benchmark/)
+- 结论摘要：[`../evals/recall-benchmark/data/CONCLUSIONS.md`](../evals/recall-benchmark/data/CONCLUSIONS.md)
 
 ## 仓库内其他文档位置
 
