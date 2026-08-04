@@ -1,0 +1,2506 @@
+{
+  "generatedAt": "2026-08-03T14:15:42.249Z",
+  "fixtureVersion": "2026-08-dogfood-v1",
+  "coldStartMs": 8798.7642,
+  "aggregates": [
+    {
+      "strategy": "bm25",
+      "n": 40,
+      "precisionAt3": 0.2875,
+      "recallAt3": 0.25833333333333336,
+      "mrr": 0.2875,
+      "falseSurfacesPer100": 5,
+      "abstentionAccuracy": 0.8,
+      "latencyMsAvg": 20.192814999999882
+    },
+    {
+      "strategy": "vector",
+      "n": 40,
+      "precisionAt3": 0.3250000000000001,
+      "recallAt3": 0.7625000000000001,
+      "mrr": 0.7916666666666666,
+      "falseSurfacesPer100": 17.5,
+      "abstentionAccuracy": 0,
+      "latencyMsAvg": 6.1225625000000035
+    },
+    {
+      "strategy": "hybrid",
+      "n": 40,
+      "precisionAt3": 0.25,
+      "recallAt3": 0.5958333333333334,
+      "mrr": 0.625,
+      "falseSurfacesPer100": 7.5,
+      "abstentionAccuracy": 0.6,
+      "latencyMsAvg": 27.327464999999847
+    }
+  ],
+  "perQuery": [
+    {
+      "queryId": "q01",
+      "expectedBehavior": "surface",
+      "relevant": [
+        "e01",
+        "e02"
+      ],
+      "strategies": {
+        "bm25": {
+          "queryId": "q01",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 0,
+          "latencyMs": 18.85359999999855,
+          "hitIds": [],
+          "stages": {
+            "lexicalMs": 18.85359999999855
+          }
+        },
+        "vector": {
+          "queryId": "q01",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 0.5,
+          "mrr": 0.5,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 2,
+          "latencyMs": 7.690099999999802,
+          "hitIds": [
+            "e09",
+            "e01",
+            "e46"
+          ],
+          "stages": {
+            "queryEmbedMs": 7.149699999999939,
+            "rankMs": 0.5403999999998632
+          }
+        },
+        "hybrid": {
+          "queryId": "q01",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 0,
+          "latencyMs": 28.360899999999674,
+          "hitIds": [],
+          "stages": {
+            "lexicalMs": 21.579100000000835,
+            "queryEmbedMs": 6.436799999999494,
+            "vectorRankMs": 0.34499999999934516
+          }
+        }
+      }
+    },
+    {
+      "queryId": "q02",
+      "expectedBehavior": "surface",
+      "relevant": [
+        "e04"
+      ],
+      "strategies": {
+        "bm25": {
+          "queryId": "q02",
+          "precisionAt3": 1,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 23.2541999999994,
+          "hitIds": [
+            "e04"
+          ],
+          "stages": {
+            "lexicalMs": 23.2541999999994
+          }
+        },
+        "vector": {
+          "queryId": "q02",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 0.5,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 2,
+          "latencyMs": 5.737499999999272,
+          "hitIds": [
+            "e16",
+            "e04",
+            "e35"
+          ],
+          "stages": {
+            "queryEmbedMs": 5.683399999999892,
+            "rankMs": 0.05409999999938009
+          }
+        },
+        "hybrid": {
+          "queryId": "q02",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 27.04699999999866,
+          "hitIds": [
+            "e04",
+            "e16",
+            "e35"
+          ],
+          "stages": {
+            "lexicalMs": 21.342499999998836,
+            "queryEmbedMs": 5.628099999999904,
+            "vectorRankMs": 0.07639999999992142
+          }
+        }
+      }
+    },
+    {
+      "queryId": "q03",
+      "expectedBehavior": "surface",
+      "relevant": [
+        "e05",
+        "e06"
+      ],
+      "strategies": {
+        "bm25": {
+          "queryId": "q03",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 0,
+          "latencyMs": 20.056099999999788,
+          "hitIds": [],
+          "stages": {
+            "lexicalMs": 20.056099999999788
+          }
+        },
+        "vector": {
+          "queryId": "q03",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 0.5,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 6.515800000001036,
+          "hitIds": [
+            "e06",
+            "e19",
+            "e03"
+          ],
+          "stages": {
+            "queryEmbedMs": 6.128700000001118,
+            "rankMs": 0.3870999999999185
+          }
+        },
+        "hybrid": {
+          "queryId": "q03",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 0,
+          "latencyMs": 24.984599999999773,
+          "hitIds": [],
+          "stages": {
+            "lexicalMs": 20.29830000000038,
+            "queryEmbedMs": 4.5560999999997875,
+            "vectorRankMs": 0.1301999999996042
+          }
+        }
+      }
+    },
+    {
+      "queryId": "q04",
+      "expectedBehavior": "surface",
+      "relevant": [
+        "e11"
+      ],
+      "strategies": {
+        "bm25": {
+          "queryId": "q04",
+          "precisionAt3": 0.5,
+          "recallAt3": 1,
+          "mrr": 0.5,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 2,
+          "latencyMs": 19.54279999999926,
+          "hitIds": [
+            "e04",
+            "e11"
+          ],
+          "stages": {
+            "lexicalMs": 19.54279999999926
+          }
+        },
+        "vector": {
+          "queryId": "q04",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 6.2533000000003085,
+          "hitIds": [
+            "e11",
+            "e04",
+            "e17"
+          ],
+          "stages": {
+            "queryEmbedMs": 6.199199999999109,
+            "rankMs": 0.05410000000119908
+          }
+        },
+        "hybrid": {
+          "queryId": "q04",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 0.5,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 2,
+          "latencyMs": 25.786799999999857,
+          "hitIds": [
+            "e04",
+            "e11",
+            "e17"
+          ],
+          "stages": {
+            "lexicalMs": 20.217899999999645,
+            "queryEmbedMs": 5.4716000000007625,
+            "vectorRankMs": 0.09729999999944994
+          }
+        }
+      }
+    },
+    {
+      "queryId": "q05",
+      "expectedBehavior": "surface",
+      "relevant": [
+        "e08"
+      ],
+      "strategies": {
+        "bm25": {
+          "queryId": "q05",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 0,
+          "latencyMs": 20.898799999999028,
+          "hitIds": [],
+          "stages": {
+            "lexicalMs": 20.898799999999028
+          }
+        },
+        "vector": {
+          "queryId": "q05",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": true,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 0,
+          "latencyMs": 6.298000000000684,
+          "hitIds": [
+            "e41",
+            "e18",
+            "e50"
+          ],
+          "stages": {
+            "queryEmbedMs": 6.244599999999991,
+            "rankMs": 0.05340000000069267
+          }
+        },
+        "hybrid": {
+          "queryId": "q05",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": true,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 0,
+          "latencyMs": 25.350299999998242,
+          "hitIds": [
+            "e41",
+            "e18",
+            "e50"
+          ],
+          "stages": {
+            "lexicalMs": 20.042999999999665,
+            "queryEmbedMs": 5.20089999999982,
+            "vectorRankMs": 0.10639999999875727
+          }
+        }
+      }
+    },
+    {
+      "queryId": "q06",
+      "expectedBehavior": "surface",
+      "relevant": [
+        "e07"
+      ],
+      "strategies": {
+        "bm25": {
+          "queryId": "q06",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 0,
+          "latencyMs": 20.35779999999977,
+          "hitIds": [],
+          "stages": {
+            "lexicalMs": 20.35779999999977
+          }
+        },
+        "vector": {
+          "queryId": "q06",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 0.5,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 2,
+          "latencyMs": 5.582000000000335,
+          "hitIds": [
+            "e10",
+            "e07",
+            "e14"
+          ],
+          "stages": {
+            "queryEmbedMs": 5.528500000000349,
+            "rankMs": 0.05349999999998545
+          }
+        },
+        "hybrid": {
+          "queryId": "q06",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 0,
+          "latencyMs": 25.767400000000634,
+          "hitIds": [],
+          "stages": {
+            "lexicalMs": 20.772399999999834,
+            "queryEmbedMs": 4.905000000000655,
+            "vectorRankMs": 0.09000000000014552
+          }
+        }
+      }
+    },
+    {
+      "queryId": "q07",
+      "expectedBehavior": "surface",
+      "relevant": [
+        "e19",
+        "e20"
+      ],
+      "strategies": {
+        "bm25": {
+          "queryId": "q07",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 0,
+          "latencyMs": 20.52560000000085,
+          "hitIds": [],
+          "stages": {
+            "lexicalMs": 20.52560000000085
+          }
+        },
+        "vector": {
+          "queryId": "q07",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 0.5,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 6.119399999999587,
+          "hitIds": [
+            "e19",
+            "e27",
+            "e07"
+          ],
+          "stages": {
+            "queryEmbedMs": 6.066899999999805,
+            "rankMs": 0.05249999999978172
+          }
+        },
+        "hybrid": {
+          "queryId": "q07",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 0.5,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 27.3112000000001,
+          "hitIds": [
+            "e19",
+            "e27",
+            "e07"
+          ],
+          "stages": {
+            "lexicalMs": 20.869300000000294,
+            "queryEmbedMs": 6.349799999999959,
+            "vectorRankMs": 0.09209999999984575
+          }
+        }
+      }
+    },
+    {
+      "queryId": "q08",
+      "expectedBehavior": "abstain",
+      "relevant": [
+        "e49"
+      ],
+      "strategies": {
+        "bm25": {
+          "queryId": "q08",
+          "precisionAt3": 1,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": true,
+          "abstentionCorrect": false,
+          "firstRelevantRank": 1,
+          "latencyMs": 20.572799999999916,
+          "hitIds": [
+            "e49"
+          ],
+          "stages": {
+            "lexicalMs": 20.572799999999916
+          }
+        },
+        "vector": {
+          "queryId": "q08",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": true,
+          "abstentionCorrect": false,
+          "firstRelevantRank": 1,
+          "latencyMs": 5.490499999999884,
+          "hitIds": [
+            "e49",
+            "e19",
+            "e20"
+          ],
+          "stages": {
+            "queryEmbedMs": 5.337600000000748,
+            "rankMs": 0.15289999999913562
+          }
+        },
+        "hybrid": {
+          "queryId": "q08",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": true,
+          "abstentionCorrect": false,
+          "firstRelevantRank": 1,
+          "latencyMs": 25.721700000003693,
+          "hitIds": [
+            "e49",
+            "e19",
+            "e20"
+          ],
+          "stages": {
+            "lexicalMs": 20.736700000001292,
+            "queryEmbedMs": 4.851100000001679,
+            "vectorRankMs": 0.13390000000072177
+          }
+        }
+      }
+    },
+    {
+      "queryId": "q09",
+      "expectedBehavior": "surface",
+      "relevant": [
+        "e21",
+        "e23",
+        "e33"
+      ],
+      "strategies": {
+        "bm25": {
+          "queryId": "q09",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 0,
+          "latencyMs": 19.611399999999776,
+          "hitIds": [],
+          "stages": {
+            "lexicalMs": 19.611399999999776
+          }
+        },
+        "vector": {
+          "queryId": "q09",
+          "precisionAt3": 0.6666666666666666,
+          "recallAt3": 0.6666666666666666,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 6.018400000002657,
+          "hitIds": [
+            "e21",
+            "e33",
+            "e03"
+          ],
+          "stages": {
+            "queryEmbedMs": 5.976400000001377,
+            "rankMs": 0.04200000000128057
+          }
+        },
+        "hybrid": {
+          "queryId": "q09",
+          "precisionAt3": 0.6666666666666666,
+          "recallAt3": 0.6666666666666666,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 25.584499999999025,
+          "hitIds": [
+            "e21",
+            "e33",
+            "e03"
+          ],
+          "stages": {
+            "lexicalMs": 19.324899999999616,
+            "queryEmbedMs": 6.167999999999665,
+            "vectorRankMs": 0.09159999999974389
+          }
+        }
+      }
+    },
+    {
+      "queryId": "q10",
+      "expectedBehavior": "abstain",
+      "relevant": [],
+      "strategies": {
+        "bm25": {
+          "queryId": "q10",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": false,
+          "abstentionCorrect": true,
+          "firstRelevantRank": 0,
+          "latencyMs": 12.668800000001283,
+          "hitIds": [],
+          "stages": {
+            "lexicalMs": 12.668800000001283
+          }
+        },
+        "vector": {
+          "queryId": "q10",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": true,
+          "abstentionCorrect": false,
+          "firstRelevantRank": 0,
+          "latencyMs": 4.70470000000023,
+          "hitIds": [
+            "e46",
+            "e45",
+            "e27"
+          ],
+          "stages": {
+            "queryEmbedMs": 4.644000000000233,
+            "rankMs": 0.06069999999999709
+          }
+        },
+        "hybrid": {
+          "queryId": "q10",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": false,
+          "abstentionCorrect": true,
+          "firstRelevantRank": 0,
+          "latencyMs": 27.28770000000077,
+          "hitIds": [],
+          "stages": {
+            "lexicalMs": 22.942699999999604,
+            "queryEmbedMs": 4.245600000000195,
+            "vectorRankMs": 0.09940000000096916
+          }
+        }
+      }
+    },
+    {
+      "queryId": "q11",
+      "expectedBehavior": "surface",
+      "relevant": [
+        "e24"
+      ],
+      "strategies": {
+        "bm25": {
+          "queryId": "q11",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 0,
+          "latencyMs": 19.128499999998894,
+          "hitIds": [],
+          "stages": {
+            "lexicalMs": 19.128499999998894
+          }
+        },
+        "vector": {
+          "queryId": "q11",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 0.3333333333333333,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 3,
+          "latencyMs": 5.718799999998737,
+          "hitIds": [
+            "e38",
+            "e39",
+            "e24"
+          ],
+          "stages": {
+            "queryEmbedMs": 5.636599999999817,
+            "rankMs": 0.08219999999892025
+          }
+        },
+        "hybrid": {
+          "queryId": "q11",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 0,
+          "latencyMs": 26.70719999999892,
+          "hitIds": [],
+          "stages": {
+            "lexicalMs": 20.519800000000032,
+            "queryEmbedMs": 6.046500000000378,
+            "vectorRankMs": 0.14089999999850988
+          }
+        }
+      }
+    },
+    {
+      "queryId": "q12",
+      "expectedBehavior": "surface",
+      "relevant": [
+        "e25"
+      ],
+      "strategies": {
+        "bm25": {
+          "queryId": "q12",
+          "precisionAt3": 1,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 20.097499999999854,
+          "hitIds": [
+            "e25"
+          ],
+          "stages": {
+            "lexicalMs": 20.097499999999854
+          }
+        },
+        "vector": {
+          "queryId": "q12",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 5.261899999999514,
+          "hitIds": [
+            "e25",
+            "e41",
+            "e06"
+          ],
+          "stages": {
+            "queryEmbedMs": 5.204200000000128,
+            "rankMs": 0.05769999999938591
+          }
+        },
+        "hybrid": {
+          "queryId": "q12",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 25.540600000002087,
+          "hitIds": [
+            "e25",
+            "e41",
+            "e06"
+          ],
+          "stages": {
+            "lexicalMs": 20.10860000000139,
+            "queryEmbedMs": 5.331500000000233,
+            "vectorRankMs": 0.10050000000046566
+          }
+        }
+      }
+    },
+    {
+      "queryId": "q13",
+      "expectedBehavior": "surface",
+      "relevant": [
+        "e26"
+      ],
+      "strategies": {
+        "bm25": {
+          "queryId": "q13",
+          "precisionAt3": 1,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 20.515300000000934,
+          "hitIds": [
+            "e26"
+          ],
+          "stages": {
+            "lexicalMs": 20.515300000000934
+          }
+        },
+        "vector": {
+          "queryId": "q13",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 6.602700000001278,
+          "hitIds": [
+            "e26",
+            "e05",
+            "e41"
+          ],
+          "stages": {
+            "queryEmbedMs": 6.540500000000975,
+            "rankMs": 0.06220000000030268
+          }
+        },
+        "hybrid": {
+          "queryId": "q13",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 27.44800000000214,
+          "hitIds": [
+            "e26",
+            "e05",
+            "e41"
+          ],
+          "stages": {
+            "lexicalMs": 20.730500000001484,
+            "queryEmbedMs": 6.615200000000186,
+            "vectorRankMs": 0.10230000000046857
+          }
+        }
+      }
+    },
+    {
+      "queryId": "q14",
+      "expectedBehavior": "surface",
+      "relevant": [
+        "e27"
+      ],
+      "strategies": {
+        "bm25": {
+          "queryId": "q14",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 0,
+          "latencyMs": 19.765400000000227,
+          "hitIds": [],
+          "stages": {
+            "lexicalMs": 19.765400000000227
+          }
+        },
+        "vector": {
+          "queryId": "q14",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 0.3333333333333333,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 3,
+          "latencyMs": 5.352100000000064,
+          "hitIds": [
+            "e28",
+            "e18",
+            "e27"
+          ],
+          "stages": {
+            "queryEmbedMs": 5.295799999999872,
+            "rankMs": 0.056300000000192085
+          }
+        },
+        "hybrid": {
+          "queryId": "q14",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 0,
+          "latencyMs": 25.08509999999842,
+          "hitIds": [],
+          "stages": {
+            "lexicalMs": 20.190699999999197,
+            "queryEmbedMs": 4.79320000000007,
+            "vectorRankMs": 0.10119999999915308
+          }
+        }
+      }
+    },
+    {
+      "queryId": "q15",
+      "expectedBehavior": "surface",
+      "relevant": [
+        "e29"
+      ],
+      "strategies": {
+        "bm25": {
+          "queryId": "q15",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 0,
+          "latencyMs": 21.228400000001784,
+          "hitIds": [],
+          "stages": {
+            "lexicalMs": 21.228400000001784
+          }
+        },
+        "vector": {
+          "queryId": "q15",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 7.571600000001126,
+          "hitIds": [
+            "e29",
+            "e17",
+            "e11"
+          ],
+          "stages": {
+            "queryEmbedMs": 7.512800000000425,
+            "rankMs": 0.0588000000007014
+          }
+        },
+        "hybrid": {
+          "queryId": "q15",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 27.896199999999226,
+          "hitIds": [
+            "e29",
+            "e17",
+            "e11"
+          ],
+          "stages": {
+            "lexicalMs": 20.69549999999981,
+            "queryEmbedMs": 7.097599999999147,
+            "vectorRankMs": 0.10310000000026776
+          }
+        }
+      }
+    },
+    {
+      "queryId": "q16",
+      "expectedBehavior": "surface",
+      "relevant": [
+        "e30",
+        "e29"
+      ],
+      "strategies": {
+        "bm25": {
+          "queryId": "q16",
+          "precisionAt3": 1,
+          "recallAt3": 0.5,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 20.087400000000343,
+          "hitIds": [
+            "e30"
+          ],
+          "stages": {
+            "lexicalMs": 20.087400000000343
+          }
+        },
+        "vector": {
+          "queryId": "q16",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 0.5,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 5.359300000001895,
+          "hitIds": [
+            "e30",
+            "e31",
+            "e46"
+          ],
+          "stages": {
+            "queryEmbedMs": 5.303400000000693,
+            "rankMs": 0.05590000000120199
+          }
+        },
+        "hybrid": {
+          "queryId": "q16",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 0.5,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 25.182299999998577,
+          "hitIds": [
+            "e30",
+            "e31",
+            "e46"
+          ],
+          "stages": {
+            "lexicalMs": 19.76350000000093,
+            "queryEmbedMs": 5.317799999998897,
+            "vectorRankMs": 0.10099999999874854
+          }
+        }
+      }
+    },
+    {
+      "queryId": "q17",
+      "expectedBehavior": "surface",
+      "relevant": [
+        "e31"
+      ],
+      "strategies": {
+        "bm25": {
+          "queryId": "q17",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": true,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 0,
+          "latencyMs": 20.470799999999144,
+          "hitIds": [
+            "e43"
+          ],
+          "stages": {
+            "lexicalMs": 20.470799999999144
+          }
+        },
+        "vector": {
+          "queryId": "q17",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 6.130999999999403,
+          "hitIds": [
+            "e31",
+            "e17",
+            "e43"
+          ],
+          "stages": {
+            "queryEmbedMs": 6.07629999999881,
+            "rankMs": 0.05470000000059372
+          }
+        },
+        "hybrid": {
+          "queryId": "q17",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 0.5,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 2,
+          "latencyMs": 26.721299999999246,
+          "hitIds": [
+            "e43",
+            "e31",
+            "e17"
+          ],
+          "stages": {
+            "lexicalMs": 20.60189999999966,
+            "queryEmbedMs": 6.018500000000131,
+            "vectorRankMs": 0.10089999999945576
+          }
+        }
+      }
+    },
+    {
+      "queryId": "q18",
+      "expectedBehavior": "surface",
+      "relevant": [
+        "e32",
+        "e37",
+        "e22"
+      ],
+      "strategies": {
+        "bm25": {
+          "queryId": "q18",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 0,
+          "latencyMs": 20.84009999999944,
+          "hitIds": [],
+          "stages": {
+            "lexicalMs": 20.84009999999944
+          }
+        },
+        "vector": {
+          "queryId": "q18",
+          "precisionAt3": 0.6666666666666666,
+          "recallAt3": 0.6666666666666666,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 5.199199999999109,
+          "hitIds": [
+            "e32",
+            "e22",
+            "e21"
+          ],
+          "stages": {
+            "queryEmbedMs": 5.143899999999121,
+            "rankMs": 0.05529999999998836
+          }
+        },
+        "hybrid": {
+          "queryId": "q18",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 0,
+          "latencyMs": 53.15229999999792,
+          "hitIds": [],
+          "stages": {
+            "lexicalMs": 47.17569999999978,
+            "queryEmbedMs": 5.876199999998789,
+            "vectorRankMs": 0.1003999999993539
+          }
+        }
+      }
+    },
+    {
+      "queryId": "q19",
+      "expectedBehavior": "surface",
+      "relevant": [
+        "e34",
+        "e35"
+      ],
+      "strategies": {
+        "bm25": {
+          "queryId": "q19",
+          "precisionAt3": 1,
+          "recallAt3": 0.5,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 19.354199999999764,
+          "hitIds": [
+            "e34"
+          ],
+          "stages": {
+            "lexicalMs": 19.354199999999764
+          }
+        },
+        "vector": {
+          "queryId": "q19",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 0.5,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 6.554000000000087,
+          "hitIds": [
+            "e34",
+            "e27",
+            "e06"
+          ],
+          "stages": {
+            "queryEmbedMs": 6.4989000000005035,
+            "rankMs": 0.055099999999583815
+          }
+        },
+        "hybrid": {
+          "queryId": "q19",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 0.5,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 25.308499999999185,
+          "hitIds": [
+            "e34",
+            "e27",
+            "e06"
+          ],
+          "stages": {
+            "lexicalMs": 19.19129999999859,
+            "queryEmbedMs": 5.917999999999665,
+            "vectorRankMs": 0.1992000000009284
+          }
+        }
+      }
+    },
+    {
+      "queryId": "q20",
+      "expectedBehavior": "surface",
+      "relevant": [
+        "e36"
+      ],
+      "strategies": {
+        "bm25": {
+          "queryId": "q20",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 0,
+          "latencyMs": 19.21429999999964,
+          "hitIds": [],
+          "stages": {
+            "lexicalMs": 19.21429999999964
+          }
+        },
+        "vector": {
+          "queryId": "q20",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 6.535400000000664,
+          "hitIds": [
+            "e36",
+            "e15",
+            "e14"
+          ],
+          "stages": {
+            "queryEmbedMs": 6.480999999999767,
+            "rankMs": 0.0544000000008964
+          }
+        },
+        "hybrid": {
+          "queryId": "q20",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 27.321599999999307,
+          "hitIds": [
+            "e36",
+            "e15",
+            "e14"
+          ],
+          "stages": {
+            "lexicalMs": 19.278599999999642,
+            "queryEmbedMs": 7.940300000000207,
+            "vectorRankMs": 0.10269999999945867
+          }
+        }
+      }
+    },
+    {
+      "queryId": "q21",
+      "expectedBehavior": "surface",
+      "relevant": [
+        "e52"
+      ],
+      "strategies": {
+        "bm25": {
+          "queryId": "q21",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 0,
+          "latencyMs": 20.29659999999967,
+          "hitIds": [],
+          "stages": {
+            "lexicalMs": 20.29659999999967
+          }
+        },
+        "vector": {
+          "queryId": "q21",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 5.0952999999990425,
+          "hitIds": [
+            "e52",
+            "e34",
+            "e31"
+          ],
+          "stages": {
+            "queryEmbedMs": 5.040199999999459,
+            "rankMs": 0.055099999999583815
+          }
+        },
+        "hybrid": {
+          "queryId": "q21",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 24.138299999998708,
+          "hitIds": [
+            "e52",
+            "e34",
+            "e31"
+          ],
+          "stages": {
+            "lexicalMs": 19.240499999999884,
+            "queryEmbedMs": 4.797499999998763,
+            "vectorRankMs": 0.10030000000006112
+          }
+        }
+      }
+    },
+    {
+      "queryId": "q22",
+      "expectedBehavior": "surface",
+      "relevant": [
+        "e01",
+        "e53"
+      ],
+      "strategies": {
+        "bm25": {
+          "queryId": "q22",
+          "precisionAt3": 1,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 19.39969999999994,
+          "hitIds": [
+            "e53",
+            "e01"
+          ],
+          "stages": {
+            "lexicalMs": 19.39969999999994
+          }
+        },
+        "vector": {
+          "queryId": "q22",
+          "precisionAt3": 0.6666666666666666,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 5.6806999999989785,
+          "hitIds": [
+            "e01",
+            "e53",
+            "e46"
+          ],
+          "stages": {
+            "queryEmbedMs": 5.62539999999899,
+            "rankMs": 0.05529999999998836
+          }
+        },
+        "hybrid": {
+          "queryId": "q22",
+          "precisionAt3": 0.6666666666666666,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 24.304200000000492,
+          "hitIds": [
+            "e53",
+            "e01",
+            "e46"
+          ],
+          "stages": {
+            "lexicalMs": 19.867599999999584,
+            "queryEmbedMs": 4.319600000000719,
+            "vectorRankMs": 0.11700000000018917
+          }
+        }
+      }
+    },
+    {
+      "queryId": "q23",
+      "expectedBehavior": "abstain",
+      "relevant": [
+        "e54"
+      ],
+      "strategies": {
+        "bm25": {
+          "queryId": "q23",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": false,
+          "abstentionCorrect": true,
+          "firstRelevantRank": 0,
+          "latencyMs": 19.61040000000139,
+          "hitIds": [],
+          "stages": {
+            "lexicalMs": 19.61040000000139
+          }
+        },
+        "vector": {
+          "queryId": "q23",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": true,
+          "abstentionCorrect": false,
+          "firstRelevantRank": 0,
+          "latencyMs": 4.6106999999992695,
+          "hitIds": [
+            "e12",
+            "e13",
+            "e07"
+          ],
+          "stages": {
+            "queryEmbedMs": 4.5560999999997875,
+            "rankMs": 0.05459999999948195
+          }
+        },
+        "hybrid": {
+          "queryId": "q23",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": false,
+          "abstentionCorrect": true,
+          "firstRelevantRank": 0,
+          "latencyMs": 23.985099999999875,
+          "hitIds": [],
+          "stages": {
+            "lexicalMs": 19.66400000000067,
+            "queryEmbedMs": 4.220400000000154,
+            "vectorRankMs": 0.10069999999905122
+          }
+        }
+      }
+    },
+    {
+      "queryId": "q24",
+      "expectedBehavior": "surface",
+      "relevant": [
+        "e55"
+      ],
+      "strategies": {
+        "bm25": {
+          "queryId": "q24",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 0,
+          "latencyMs": 19.04190000000017,
+          "hitIds": [],
+          "stages": {
+            "lexicalMs": 19.04190000000017
+          }
+        },
+        "vector": {
+          "queryId": "q24",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 4.850799999998344,
+          "hitIds": [
+            "e55",
+            "e07",
+            "e01"
+          ],
+          "stages": {
+            "queryEmbedMs": 4.795599999999467,
+            "rankMs": 0.05519999999887659
+          }
+        },
+        "hybrid": {
+          "queryId": "q24",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 23.911299999999756,
+          "hitIds": [
+            "e55",
+            "e07",
+            "e01"
+          ],
+          "stages": {
+            "lexicalMs": 18.995199999999386,
+            "queryEmbedMs": 4.8158000000003085,
+            "vectorRankMs": 0.10030000000006112
+          }
+        }
+      }
+    },
+    {
+      "queryId": "q25",
+      "expectedBehavior": "surface",
+      "relevant": [
+        "e48"
+      ],
+      "strategies": {
+        "bm25": {
+          "queryId": "q25",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 0,
+          "latencyMs": 12.125099999999293,
+          "hitIds": [],
+          "stages": {
+            "lexicalMs": 12.125099999999293
+          }
+        },
+        "vector": {
+          "queryId": "q25",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 9.812700000000405,
+          "hitIds": [
+            "e48",
+            "e25",
+            "e12"
+          ],
+          "stages": {
+            "queryEmbedMs": 9.754899999999907,
+            "rankMs": 0.057800000000497676
+          }
+        },
+        "hybrid": {
+          "queryId": "q25",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 17.158699999998134,
+          "hitIds": [
+            "e48",
+            "e25",
+            "e12"
+          ],
+          "stages": {
+            "lexicalMs": 12.67529999999897,
+            "queryEmbedMs": 4.381900000000314,
+            "vectorRankMs": 0.1014999999988504
+          }
+        }
+      }
+    },
+    {
+      "queryId": "q26",
+      "expectedBehavior": "surface",
+      "relevant": [
+        "e01",
+        "e02"
+      ],
+      "strategies": {
+        "bm25": {
+          "queryId": "q26",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 0,
+          "latencyMs": 20.164699999999357,
+          "hitIds": [],
+          "stages": {
+            "lexicalMs": 20.164699999999357
+          }
+        },
+        "vector": {
+          "queryId": "q26",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 0.5,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 5.408799999999246,
+          "hitIds": [
+            "e01",
+            "e48",
+            "e38"
+          ],
+          "stages": {
+            "queryEmbedMs": 5.352199999999357,
+            "rankMs": 0.056599999999889405
+          }
+        },
+        "hybrid": {
+          "queryId": "q26",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 0,
+          "latencyMs": 53.63250000000335,
+          "hitIds": [],
+          "stages": {
+            "lexicalMs": 19.74750000000131,
+            "queryEmbedMs": 33.76300000000083,
+            "vectorRankMs": 0.12200000000120781
+          }
+        }
+      }
+    },
+    {
+      "queryId": "q27",
+      "expectedBehavior": "surface",
+      "relevant": [
+        "e03"
+      ],
+      "strategies": {
+        "bm25": {
+          "queryId": "q27",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 0,
+          "latencyMs": 25.725800000000163,
+          "hitIds": [],
+          "stages": {
+            "lexicalMs": 25.725800000000163
+          }
+        },
+        "vector": {
+          "queryId": "q27",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 8.98279999999977,
+          "hitIds": [
+            "e03",
+            "e14",
+            "e06"
+          ],
+          "stages": {
+            "queryEmbedMs": 8.936999999999898,
+            "rankMs": 0.04579999999987194
+          }
+        },
+        "hybrid": {
+          "queryId": "q27",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 47.41679999999906,
+          "hitIds": [
+            "e03",
+            "e14",
+            "e06"
+          ],
+          "stages": {
+            "lexicalMs": 24.086199999999735,
+            "queryEmbedMs": 23.200399999999718,
+            "vectorRankMs": 0.1301999999996042
+          }
+        }
+      }
+    },
+    {
+      "queryId": "q28",
+      "expectedBehavior": "surface",
+      "relevant": [
+        "e18"
+      ],
+      "strategies": {
+        "bm25": {
+          "queryId": "q28",
+          "precisionAt3": 1,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 24.103799999998955,
+          "hitIds": [
+            "e18"
+          ],
+          "stages": {
+            "lexicalMs": 24.103799999998955
+          }
+        },
+        "vector": {
+          "queryId": "q28",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 9.133600000001024,
+          "hitIds": [
+            "e18",
+            "e21",
+            "e29"
+          ],
+          "stages": {
+            "queryEmbedMs": 9.078199999999924,
+            "rankMs": 0.055400000001100125
+          }
+        },
+        "hybrid": {
+          "queryId": "q28",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 23.685100000000602,
+          "hitIds": [
+            "e18",
+            "e21",
+            "e29"
+          ],
+          "stages": {
+            "lexicalMs": 18.877000000000407,
+            "queryEmbedMs": 4.704200000000128,
+            "vectorRankMs": 0.10390000000006694
+          }
+        }
+      }
+    },
+    {
+      "queryId": "q29",
+      "expectedBehavior": "surface",
+      "relevant": [
+        "e28"
+      ],
+      "strategies": {
+        "bm25": {
+          "queryId": "q29",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 0,
+          "latencyMs": 19.647100000000137,
+          "hitIds": [],
+          "stages": {
+            "lexicalMs": 19.647100000000137
+          }
+        },
+        "vector": {
+          "queryId": "q29",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": true,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 0,
+          "latencyMs": 5.606999999999971,
+          "hitIds": [
+            "e41",
+            "e02",
+            "e36"
+          ],
+          "stages": {
+            "queryEmbedMs": 5.551900000000387,
+            "rankMs": 0.055099999999583815
+          }
+        },
+        "hybrid": {
+          "queryId": "q29",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 0,
+          "latencyMs": 25.453199999998105,
+          "hitIds": [],
+          "stages": {
+            "lexicalMs": 19.690300000000207,
+            "queryEmbedMs": 5.658799999999246,
+            "vectorRankMs": 0.10409999999865249
+          }
+        }
+      }
+    },
+    {
+      "queryId": "q30",
+      "expectedBehavior": "surface",
+      "relevant": [
+        "e21",
+        "e20",
+        "e26"
+      ],
+      "strategies": {
+        "bm25": {
+          "queryId": "q30",
+          "precisionAt3": 1,
+          "recallAt3": 0.3333333333333333,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 22.22270000000026,
+          "hitIds": [
+            "e21"
+          ],
+          "stages": {
+            "lexicalMs": 22.22270000000026
+          }
+        },
+        "vector": {
+          "queryId": "q30",
+          "precisionAt3": 0.6666666666666666,
+          "recallAt3": 0.6666666666666666,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 12.77270000000135,
+          "hitIds": [
+            "e26",
+            "e50",
+            "e21"
+          ],
+          "stages": {
+            "queryEmbedMs": 12.717000000000553,
+            "rankMs": 0.055700000000797445
+          }
+        },
+        "hybrid": {
+          "queryId": "q30",
+          "precisionAt3": 0.6666666666666666,
+          "recallAt3": 0.6666666666666666,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 39.27149999999892,
+          "hitIds": [
+            "e21",
+            "e26",
+            "e50"
+          ],
+          "stages": {
+            "lexicalMs": 22.007799999999406,
+            "queryEmbedMs": 17.161599999999453,
+            "vectorRankMs": 0.10210000000006403
+          }
+        }
+      }
+    },
+    {
+      "queryId": "q31",
+      "expectedBehavior": "surface",
+      "relevant": [
+        "e16"
+      ],
+      "strategies": {
+        "bm25": {
+          "queryId": "q31",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 0,
+          "latencyMs": 11.871099999998478,
+          "hitIds": [],
+          "stages": {
+            "lexicalMs": 11.871099999998478
+          }
+        },
+        "vector": {
+          "queryId": "q31",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 4.795799999999872,
+          "hitIds": [
+            "e16",
+            "e25",
+            "e12"
+          ],
+          "stages": {
+            "queryEmbedMs": 4.739400000000387,
+            "rankMs": 0.05639999999948486
+          }
+        },
+        "hybrid": {
+          "queryId": "q31",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 16.95639999999912,
+          "hitIds": [
+            "e16",
+            "e25",
+            "e12"
+          ],
+          "stages": {
+            "lexicalMs": 12.23320000000058,
+            "queryEmbedMs": 4.6238999999986845,
+            "vectorRankMs": 0.09929999999985739
+          }
+        }
+      }
+    },
+    {
+      "queryId": "q32",
+      "expectedBehavior": "surface",
+      "relevant": [
+        "e12"
+      ],
+      "strategies": {
+        "bm25": {
+          "queryId": "q32",
+          "precisionAt3": 1,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 19.721700000000055,
+          "hitIds": [
+            "e12"
+          ],
+          "stages": {
+            "lexicalMs": 19.721700000000055
+          }
+        },
+        "vector": {
+          "queryId": "q32",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 5.423300000000381,
+          "hitIds": [
+            "e12",
+            "e48",
+            "e07"
+          ],
+          "stages": {
+            "queryEmbedMs": 5.367799999999988,
+            "rankMs": 0.0555000000003929
+          }
+        },
+        "hybrid": {
+          "queryId": "q32",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 24.656599999998434,
+          "hitIds": [
+            "e12",
+            "e48",
+            "e07"
+          ],
+          "stages": {
+            "lexicalMs": 19.662199999998847,
+            "queryEmbedMs": 4.89259999999922,
+            "vectorRankMs": 0.10180000000036671
+          }
+        }
+      }
+    },
+    {
+      "queryId": "q33",
+      "expectedBehavior": "surface",
+      "relevant": [
+        "e13"
+      ],
+      "strategies": {
+        "bm25": {
+          "queryId": "q33",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 0,
+          "latencyMs": 19.988499999999476,
+          "hitIds": [],
+          "stages": {
+            "lexicalMs": 19.988499999999476
+          }
+        },
+        "vector": {
+          "queryId": "q33",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 0.5,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 2,
+          "latencyMs": 4.865899999998874,
+          "hitIds": [
+            "e10",
+            "e13",
+            "e12"
+          ],
+          "stages": {
+            "queryEmbedMs": 4.811700000000201,
+            "rankMs": 0.054199999998672865
+          }
+        },
+        "hybrid": {
+          "queryId": "q33",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 0,
+          "latencyMs": 25.002399999999398,
+          "hitIds": [],
+          "stages": {
+            "lexicalMs": 20.09389999999985,
+            "queryEmbedMs": 4.80869999999959,
+            "vectorRankMs": 0.09979999999995925
+          }
+        }
+      }
+    },
+    {
+      "queryId": "q34",
+      "expectedBehavior": "surface",
+      "relevant": [
+        "e15"
+      ],
+      "strategies": {
+        "bm25": {
+          "queryId": "q34",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 0,
+          "latencyMs": 20.108900000001086,
+          "hitIds": [],
+          "stages": {
+            "lexicalMs": 20.108900000001086
+          }
+        },
+        "vector": {
+          "queryId": "q34",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 4.896700000001147,
+          "hitIds": [
+            "e15",
+            "e41",
+            "e28"
+          ],
+          "stages": {
+            "queryEmbedMs": 4.842400000001362,
+            "rankMs": 0.05429999999978463
+          }
+        },
+        "hybrid": {
+          "queryId": "q34",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 25.014499999999316,
+          "hitIds": [
+            "e15",
+            "e41",
+            "e28"
+          ],
+          "stages": {
+            "lexicalMs": 20.27980000000025,
+            "queryEmbedMs": 4.633099999999104,
+            "vectorRankMs": 0.10159999999996217
+          }
+        }
+      }
+    },
+    {
+      "queryId": "q35",
+      "expectedBehavior": "surface",
+      "relevant": [
+        "e17"
+      ],
+      "strategies": {
+        "bm25": {
+          "queryId": "q35",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 0,
+          "latencyMs": 46.933499999999185,
+          "hitIds": [],
+          "stages": {
+            "lexicalMs": 46.933499999999185
+          }
+        },
+        "vector": {
+          "queryId": "q35",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 4.860899999999674,
+          "hitIds": [
+            "e17",
+            "e14",
+            "e29"
+          ],
+          "stages": {
+            "queryEmbedMs": 4.803200000000288,
+            "rankMs": 0.05769999999938591
+          }
+        },
+        "hybrid": {
+          "queryId": "q35",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 0,
+          "latencyMs": 25.149700000001758,
+          "hitIds": [],
+          "stages": {
+            "lexicalMs": 19.78780000000006,
+            "queryEmbedMs": 5.261700000000928,
+            "vectorRankMs": 0.10020000000076834
+          }
+        }
+      }
+    },
+    {
+      "queryId": "q36",
+      "expectedBehavior": "surface",
+      "relevant": [
+        "e10"
+      ],
+      "strategies": {
+        "bm25": {
+          "queryId": "q36",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 0,
+          "latencyMs": 19.07209999999941,
+          "hitIds": [],
+          "stages": {
+            "lexicalMs": 19.07209999999941
+          }
+        },
+        "vector": {
+          "queryId": "q36",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 5.184599999998682,
+          "hitIds": [
+            "e10",
+            "e21",
+            "e28"
+          ],
+          "stages": {
+            "queryEmbedMs": 5.125299999999697,
+            "rankMs": 0.059299999998984276
+          }
+        },
+        "hybrid": {
+          "queryId": "q36",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 24.65689999999995,
+          "hitIds": [
+            "e10",
+            "e21",
+            "e28"
+          ],
+          "stages": {
+            "lexicalMs": 19.644500000000335,
+            "queryEmbedMs": 4.912500000000364,
+            "vectorRankMs": 0.09989999999925203
+          }
+        }
+      }
+    },
+    {
+      "queryId": "q37",
+      "expectedBehavior": "surface",
+      "relevant": [
+        "e09"
+      ],
+      "strategies": {
+        "bm25": {
+          "queryId": "q37",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 0,
+          "latencyMs": 18.664199999999255,
+          "hitIds": [],
+          "stages": {
+            "lexicalMs": 18.664199999999255
+          }
+        },
+        "vector": {
+          "queryId": "q37",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 5.5878000000011525,
+          "hitIds": [
+            "e09",
+            "e10",
+            "e13"
+          ],
+          "stages": {
+            "queryEmbedMs": 5.53150000000096,
+            "rankMs": 0.056300000000192085
+          }
+        },
+        "hybrid": {
+          "queryId": "q37",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 24.68029999999999,
+          "hitIds": [
+            "e09",
+            "e10",
+            "e13"
+          ],
+          "stages": {
+            "lexicalMs": 19.11239999999998,
+            "queryEmbedMs": 5.466099999999642,
+            "vectorRankMs": 0.10180000000036671
+          }
+        }
+      }
+    },
+    {
+      "queryId": "q38",
+      "expectedBehavior": "abstain",
+      "relevant": [],
+      "strategies": {
+        "bm25": {
+          "queryId": "q38",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": false,
+          "abstentionCorrect": true,
+          "firstRelevantRank": 0,
+          "latencyMs": 11.910499999999956,
+          "hitIds": [],
+          "stages": {
+            "lexicalMs": 11.910499999999956
+          }
+        },
+        "vector": {
+          "queryId": "q38",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": true,
+          "abstentionCorrect": false,
+          "firstRelevantRank": 0,
+          "latencyMs": 4.115299999999479,
+          "hitIds": [
+            "e08",
+            "e07",
+            "e06"
+          ],
+          "stages": {
+            "queryEmbedMs": 4.059600000000501,
+            "rankMs": 0.055699999998978456
+          }
+        },
+        "hybrid": {
+          "queryId": "q38",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": false,
+          "abstentionCorrect": true,
+          "firstRelevantRank": 0,
+          "latencyMs": 16.400500000001557,
+          "hitIds": [],
+          "stages": {
+            "lexicalMs": 12.219500000001062,
+            "queryEmbedMs": 4.098900000000867,
+            "vectorRankMs": 0.08209999999962747
+          }
+        }
+      }
+    },
+    {
+      "queryId": "q39",
+      "expectedBehavior": "abstain",
+      "relevant": [
+        "e50"
+      ],
+      "strategies": {
+        "bm25": {
+          "queryId": "q39",
+          "precisionAt3": 0,
+          "recallAt3": 0,
+          "mrr": 0,
+          "falseSurface": false,
+          "abstentionCorrect": true,
+          "firstRelevantRank": 0,
+          "latencyMs": 19.801900000000387,
+          "hitIds": [],
+          "stages": {
+            "lexicalMs": 19.801900000000387
+          }
+        },
+        "vector": {
+          "queryId": "q39",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": true,
+          "abstentionCorrect": false,
+          "firstRelevantRank": 1,
+          "latencyMs": 6.013999999999214,
+          "hitIds": [
+            "e50",
+            "e16",
+            "e25"
+          ],
+          "stages": {
+            "queryEmbedMs": 5.957800000000134,
+            "rankMs": 0.05619999999908032
+          }
+        },
+        "hybrid": {
+          "queryId": "q39",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": true,
+          "abstentionCorrect": false,
+          "firstRelevantRank": 1,
+          "latencyMs": 27.21390000000065,
+          "hitIds": [
+            "e50",
+            "e16",
+            "e25"
+          ],
+          "stages": {
+            "lexicalMs": 20.31370000000061,
+            "queryEmbedMs": 6.797899999999572,
+            "vectorRankMs": 0.10230000000046857
+          }
+        }
+      }
+    },
+    {
+      "queryId": "q40",
+      "expectedBehavior": "surface",
+      "relevant": [
+        "e51",
+        "e30"
+      ],
+      "strategies": {
+        "bm25": {
+          "queryId": "q40",
+          "precisionAt3": 1,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 20.258600000001024,
+          "hitIds": [
+            "e51",
+            "e30"
+          ],
+          "stages": {
+            "lexicalMs": 20.258600000001024
+          }
+        },
+        "vector": {
+          "queryId": "q40",
+          "precisionAt3": 0.3333333333333333,
+          "recallAt3": 0.5,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 6.507399999998597,
+          "hitIds": [
+            "e51",
+            "e31",
+            "e17"
+          ],
+          "stages": {
+            "queryEmbedMs": 6.451199999999517,
+            "rankMs": 0.05619999999908032
+          }
+        },
+        "hybrid": {
+          "queryId": "q40",
+          "precisionAt3": 0.6666666666666666,
+          "recallAt3": 1,
+          "mrr": 1,
+          "falseSurface": false,
+          "abstentionCorrect": null,
+          "firstRelevantRank": 1,
+          "latencyMs": 26.845500000001266,
+          "hitIds": [
+            "e51",
+            "e30",
+            "e31"
+          ],
+          "stages": {
+            "lexicalMs": 20.287500000000364,
+            "queryEmbedMs": 6.456900000001042,
+            "vectorRankMs": 0.1010999999998603
+          }
+        }
+      }
+    }
+  ]
+}

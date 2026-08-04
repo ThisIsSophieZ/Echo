@@ -1,0 +1,681 @@
+{
+  "fixtureVersion": "2026-08-dogfood-v1",
+  "annotationGuide": {
+    "relevant": "Ids that should appear if the system surfaces anything",
+    "hardNegatives": "Topic-adjacent distractors that must not count as hits",
+    "expectedBehavior": "surface = at least one relevant should be acceptable; abstain = silence is correct"
+  },
+  "queries": [
+    {
+      "id": "q01",
+      "text": "推理成本太高了,有没有省钱的优化思路",
+      "relevant": [
+        "e01",
+        "e02"
+      ],
+      "hardNegatives": [
+        "e14",
+        "e43"
+      ],
+      "expectedBehavior": "surface",
+      "rationale": "换词表达降成本;词法可能弱,语义应捞回路由/缓存",
+      "tags": [
+        "paraphrase",
+        "cost"
+      ]
+    },
+    {
+      "id": "q02",
+      "text": "换个说法就搜不到东西了,这个问题怎么解决",
+      "relevant": [
+        "e04"
+      ],
+      "hardNegatives": [
+        "e16",
+        "e40"
+      ],
+      "expectedBehavior": "surface",
+      "rationale": "词法强项:用词直接撞上向量检索动机",
+      "tags": [
+        "lexical-friendly"
+      ]
+    },
+    {
+      "id": "q03",
+      "text": "怎么让 bot 在不同对话之间保持上下文",
+      "relevant": [
+        "e05",
+        "e06"
+      ],
+      "hardNegatives": [
+        "e19",
+        "e20"
+      ],
+      "expectedBehavior": "surface",
+      "rationale": "Agent 记忆 paraphrase,词法易漏",
+      "tags": [
+        "paraphrase",
+        "memory"
+      ]
+    },
+    {
+      "id": "q04",
+      "text": "TiDB 向量检索的 SQL 到底怎么写",
+      "relevant": [
+        "e11"
+      ],
+      "hardNegatives": [
+        "e04",
+        "e17"
+      ],
+      "expectedBehavior": "surface",
+      "rationale": "精确技术词,BM25 应赢",
+      "tags": [
+        "lexical-friendly",
+        "exact"
+      ]
+    },
+    {
+      "id": "q05",
+      "text": "为什么很多人懒得记笔记、懒得整理想法",
+      "relevant": [
+        "e08"
+      ],
+      "hardNegatives": [
+        "e12",
+        "e16"
+      ],
+      "expectedBehavior": "surface",
+      "rationale": "捕获摩擦的语义跳跃",
+      "tags": [
+        "paraphrase",
+        "capture"
+      ]
+    },
+    {
+      "id": "q06",
+      "text": "产品上线前是不是应该自己先用一段时间",
+      "relevant": [
+        "e07"
+      ],
+      "hardNegatives": [
+        "e10",
+        "e13"
+      ],
+      "expectedBehavior": "surface",
+      "rationale": "dogfood 词法友好",
+      "tags": [
+        "lexical-friendly"
+      ]
+    },
+    {
+      "id": "q07",
+      "text": "用户根本不愿意打开一个单独的本地应用去管理聊天收藏",
+      "relevant": [
+        "e19",
+        "e20"
+      ],
+      "hardNegatives": [
+        "e49",
+        "e08"
+      ],
+      "expectedBehavior": "surface",
+      "rationale": "产品 pivot 核心故事",
+      "tags": [
+        "product",
+        "pivot"
+      ]
+    },
+    {
+      "id": "q08",
+      "text": "独立桌面 Collect 工具是不是正确的产品入口",
+      "relevant": [
+        "e49"
+      ],
+      "hardNegatives": [
+        "e19",
+        "e20"
+      ],
+      "expectedBehavior": "abstain",
+      "rationale": "问的是已推翻假设;理想行为是沉默或明确标 superseded,不应当正例强推 e19 当答案替代叙事混乱——标注为 abstain:旧结论不应再当有效建议浮现",
+      "tags": [
+        "superseded",
+        "abstain"
+      ]
+    },
+    {
+      "id": "q09",
+      "text": "误匹配太多,泛词也能打出很高分,怎么改召回",
+      "relevant": [
+        "e21",
+        "e23",
+        "e33"
+      ],
+      "hardNegatives": [
+        "e45",
+        "e46"
+      ],
+      "expectedBehavior": "surface",
+      "rationale": "precision-first 改造动机",
+      "tags": [
+        "product",
+        "precision"
+      ]
+    },
+    {
+      "id": "q10",
+      "text": "实用 这个 快速",
+      "relevant": [],
+      "hardNegatives": [
+        "e45",
+        "e46",
+        "e33"
+      ],
+      "expectedBehavior": "abstain",
+      "rationale": "纯泛词选区:正确行为是沉默",
+      "tags": [
+        "abstain",
+        "generic-tokens"
+      ]
+    },
+    {
+      "id": "q11",
+      "text": "LLM 页面消息滚走了还能不能跳回原句",
+      "relevant": [
+        "e24"
+      ],
+      "hardNegatives": [
+        "e38",
+        "e39"
+      ],
+      "expectedBehavior": "surface",
+      "rationale": "锚点可靠性 paraphrase",
+      "tags": [
+        "paraphrase",
+        "anchor"
+      ]
+    },
+    {
+      "id": "q12",
+      "text": "Service Worker 挂了补想法丢了怎么办",
+      "relevant": [
+        "e25"
+      ],
+      "hardNegatives": [
+        "e06",
+        "e34"
+      ],
+      "expectedBehavior": "surface",
+      "rationale": "MV3 恢复 paraphrase",
+      "tags": [
+        "paraphrase",
+        "reliability"
+      ]
+    },
+    {
+      "id": "q13",
+      "text": "要不要做一个全自动记忆 Agent 替我决定用哪条旧想法",
+      "relevant": [
+        "e26"
+      ],
+      "hardNegatives": [
+        "e05",
+        "e30"
+      ],
+      "expectedBehavior": "surface",
+      "rationale": "人在回路边界",
+      "tags": [
+        "product",
+        "hitl"
+      ]
+    },
+    {
+      "id": "q14",
+      "text": "对话内容默认真的不会上传吗",
+      "relevant": [
+        "e27"
+      ],
+      "hardNegatives": [
+        "e34",
+        "e44"
+      ],
+      "expectedBehavior": "surface",
+      "rationale": "隐私 local-first",
+      "tags": [
+        "privacy"
+      ]
+    },
+    {
+      "id": "q15",
+      "text": "相似分数都挤在 0.85 到 0.91,能直接当置信度吗",
+      "relevant": [
+        "e29"
+      ],
+      "hardNegatives": [
+        "e17",
+        "e04"
+      ],
+      "expectedBehavior": "surface",
+      "rationale": "向量拥挤教训",
+      "tags": [
+        "eval",
+        "vector"
+      ]
+    },
+    {
+      "id": "q16",
+      "text": "是不是应该直接用向量替换现在的 BM25",
+      "relevant": [
+        "e30",
+        "e29"
+      ],
+      "hardNegatives": [
+        "e04",
+        "e11"
+      ],
+      "expectedBehavior": "surface",
+      "rationale": "Hybrid 不是替换",
+      "tags": [
+        "hybrid"
+      ]
+    },
+    {
+      "id": "q17",
+      "text": "还没标注集就先换一个更大的 embedding 模型 dual",
+      "relevant": [
+        "e31"
+      ],
+      "hardNegatives": [
+        "e17",
+        "e51"
+      ],
+      "expectedBehavior": "surface",
+      "rationale": "先评测再调模型",
+      "tags": [
+        "eval"
+      ]
+    },
+    {
+      "id": "q18",
+      "text": "面试怎么证明召回不是拍脑袋调的",
+      "relevant": [
+        "e32",
+        "e37",
+        "e22"
+      ],
+      "hardNegatives": [
+        "e36"
+      ],
+      "expectedBehavior": "surface",
+      "rationale": "诊断驱动叙事",
+      "tags": [
+        "interview"
+      ]
+    },
+    {
+      "id": "q19",
+      "text": "重装扩展或 fork 仓库后本地 Echo 会不会丢",
+      "relevant": [
+        "e34",
+        "e35"
+      ],
+      "hardNegatives": [
+        "e25",
+        "e06"
+      ],
+      "expectedBehavior": "surface",
+      "rationale": "备份与扩展 ID",
+      "tags": [
+        "reliability",
+        "migration"
+      ]
+    },
+    {
+      "id": "q20",
+      "text": "为了找工作要不要先做一个带鉴权的云同步后端",
+      "relevant": [
+        "e36"
+      ],
+      "hardNegatives": [
+        "e27",
+        "e52"
+      ],
+      "expectedBehavior": "surface",
+      "rationale": "明确反对假后端",
+      "tags": [
+        "interview",
+        "scope"
+      ]
+    },
+    {
+      "id": "q21",
+      "text": "observability 一定要接 Datadog 吗",
+      "relevant": [
+        "e52"
+      ],
+      "hardNegatives": [
+        "e43",
+        "e22"
+      ],
+      "expectedBehavior": "surface",
+      "rationale": "本地 trace 立场",
+      "tags": [
+        "observability"
+      ]
+    },
+    {
+      "id": "q22",
+      "text": "cheap model first, only escalate hard cases",
+      "relevant": [
+        "e01",
+        "e53"
+      ],
+      "hardNegatives": [
+        "e02"
+      ],
+      "expectedBehavior": "surface",
+      "rationale": "英文选区对齐路由想法",
+      "tags": [
+        "bilingual",
+        "paraphrase"
+      ]
+    },
+    {
+      "id": "q23",
+      "text": "Apple 最新季度收入怎么样",
+      "relevant": [
+        "e54"
+      ],
+      "hardNegatives": [
+        "e55"
+      ],
+      "expectedBehavior": "abstain",
+      "rationale": "同词异义:公司语境不应捞出苹果派;语料里也没有财报 Echo → 应沉默",
+      "tags": [
+        "polysemy",
+        "abstain"
+      ]
+    },
+    {
+      "id": "q24",
+      "text": "做派之前黄油要怎么处理",
+      "relevant": [
+        "e55"
+      ],
+      "hardNegatives": [
+        "e54"
+      ],
+      "expectedBehavior": "surface",
+      "rationale": "生活噪声在生活语境下可召回",
+      "tags": [
+        "noise-positive"
+      ]
+    },
+    {
+      "id": "q25",
+      "text": "今天练卧推安排",
+      "relevant": [
+        "e48"
+      ],
+      "hardNegatives": [
+        "e21",
+        "e07"
+      ],
+      "expectedBehavior": "surface",
+      "rationale": "生活查询对生活 Echo",
+      "tags": [
+        "noise-positive"
+      ]
+    },
+    {
+      "id": "q26",
+      "text": "如何降低 LLM 应用的单位调用费用",
+      "relevant": [
+        "e01",
+        "e02"
+      ],
+      "hardNegatives": [
+        "e14",
+        "e09"
+      ],
+      "expectedBehavior": "surface",
+      "rationale": "成本主题中英混合 paraphrase",
+      "tags": [
+        "paraphrase",
+        "cost",
+        "bilingual"
+      ]
+    },
+    {
+      "id": "q27",
+      "text": "固定长度切 chunk 为什么不好",
+      "relevant": [
+        "e03"
+      ],
+      "hardNegatives": [
+        "e04",
+        "e16"
+      ],
+      "expectedBehavior": "surface",
+      "rationale": "语义切块",
+      "tags": [
+        "lexical-friendly"
+      ]
+    },
+    {
+      "id": "q28",
+      "text": "提示里塞规则不如塞例子",
+      "relevant": [
+        "e18"
+      ],
+      "hardNegatives": [
+        "e22",
+        "e31"
+      ],
+      "expectedBehavior": "surface",
+      "rationale": "few-shot",
+      "tags": [
+        "lexical-friendly"
+      ]
+    },
+    {
+      "id": "q29",
+      "text": "相关内容现在不想看,是不是应该永久降权这条记忆",
+      "relevant": [
+        "e28"
+      ],
+      "hardNegatives": [
+        "e41",
+        "e21"
+      ],
+      "expectedBehavior": "surface",
+      "rationale": "wrong_time vs not_relevant",
+      "tags": [
+        "feedback"
+      ]
+    },
+    {
+      "id": "q30",
+      "text": "长选区测试:我们在做浏览器里的记忆层,核心不是存更多 AI 原文,而是在未来合适语境安静地还回一条旧想法。如果召回靠泛词,用户会关掉扩展。需要可解释的拒绝和精度优先。",
+      "relevant": [
+        "e21",
+        "e20",
+        "e26"
+      ],
+      "hardNegatives": [
+        "e50",
+        "e45"
+      ],
+      "expectedBehavior": "surface",
+      "rationale": "长选区多主题,应优先产品原则类 Echo",
+      "tags": [
+        "long-query",
+        "product"
+      ]
+    },
+    {
+      "id": "q31",
+      "text": "文档写了但团队找不到",
+      "relevant": [
+        "e16"
+      ],
+      "hardNegatives": [
+        "e40",
+        "e04"
+      ],
+      "expectedBehavior": "surface",
+      "rationale": "可检索性",
+      "tags": [
+        "paraphrase"
+      ]
+    },
+    {
+      "id": "q32",
+      "text": "周报写成了日常流水账",
+      "relevant": [
+        "e12"
+      ],
+      "hardNegatives": [
+        "e15",
+        "e37"
+      ],
+      "expectedBehavior": "surface",
+      "rationale": "词法友好",
+      "tags": [
+        "lexical-friendly"
+      ]
+    },
+    {
+      "id": "q33",
+      "text": "要不要先投流拉新用户",
+      "relevant": [
+        "e13"
+      ],
+      "hardNegatives": [
+        "e10",
+        "e09"
+      ],
+      "expectedBehavior": "surface",
+      "rationale": "冷启动",
+      "tags": [
+        "paraphrase"
+      ]
+    },
+    {
+      "id": "q34",
+      "text": "会议能不能改成异步留言",
+      "relevant": [
+        "e15"
+      ],
+      "hardNegatives": [
+        "e12",
+        "e05"
+      ],
+      "expectedBehavior": "surface",
+      "rationale": "异步优先",
+      "tags": [
+        "lexical-friendly"
+      ]
+    },
+    {
+      "id": "q35",
+      "text": "cosine 之前要不要 normalize",
+      "relevant": [
+        "e17"
+      ],
+      "hardNegatives": [
+        "e11",
+        "e29"
+      ],
+      "expectedBehavior": "surface",
+      "rationale": "英文技术词",
+      "tags": [
+        "bilingual",
+        "exact"
+      ]
+    },
+    {
+      "id": "q36",
+      "text": "首屏两分钟留不住人",
+      "relevant": [
+        "e10"
+      ],
+      "hardNegatives": [
+        "e07",
+        "e13"
+      ],
+      "expectedBehavior": "surface",
+      "rationale": "首次体验 paraphrase",
+      "tags": [
+        "paraphrase"
+      ]
+    },
+    {
+      "id": "q37",
+      "text": "价格页要不要先放一个很贵的套餐",
+      "relevant": [
+        "e09"
+      ],
+      "hardNegatives": [
+        "e01",
+        "e02"
+      ],
+      "expectedBehavior": "surface",
+      "rationale": "定价锚定",
+      "tags": [
+        "paraphrase"
+      ]
+    },
+    {
+      "id": "q38",
+      "text": "今天天气不错适合散步",
+      "relevant": [],
+      "hardNegatives": [
+        "e47",
+        "e48",
+        "e55"
+      ],
+      "expectedBehavior": "abstain",
+      "rationale": "与语料无决策相关;应完全沉默",
+      "tags": [
+        "abstain",
+        "unrelated"
+      ]
+    },
+    {
+      "id": "q39",
+      "text": "把全部 ChatGPT 历史原文都存下来以后慢慢搜",
+      "relevant": [
+        "e50"
+      ],
+      "hardNegatives": [
+        "e19",
+        "e08"
+      ],
+      "expectedBehavior": "abstain",
+      "rationale": "已推翻的全文囤积假设;不应作为现行建议浮现",
+      "tags": [
+        "superseded",
+        "abstain"
+      ]
+    },
+    {
+      "id": "q40",
+      "text": "hybrid 候选生成之后要不要立刻上 cross-encoder",
+      "relevant": [
+        "e51",
+        "e30"
+      ],
+      "hardNegatives": [
+        "e31",
+        "e17"
+      ],
+      "expectedBehavior": "surface",
+      "rationale": "rerank 排期判断",
+      "tags": [
+        "hybrid",
+        "eval"
+      ]
+    }
+  ]
+}

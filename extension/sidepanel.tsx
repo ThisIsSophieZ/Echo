@@ -108,10 +108,16 @@ const SidePanel = () => {
     () => new Map(searchResults.map((result) => [result.echo.id, result.match])),
     [searchResults]
   )
-  const relatedAnalysis = useMemo(
-    () => analyzeRelatedEchoes(echoes, selectedText, 3, context.url),
-    [context.url, echoes, selectedText]
-  )
+  const relatedAnalysisBundle = useMemo(() => {
+    const started = performance.now()
+    const analysis = analyzeRelatedEchoes(echoes, selectedText, 3, context.url)
+    return {
+      analysis,
+      lexicalMs: performance.now() - started
+    }
+  }, [context.url, echoes, selectedText])
+  const relatedAnalysis = relatedAnalysisBundle.analysis
+  const relatedLexicalMs = relatedAnalysisBundle.lexicalMs
   const relatedById = useMemo(
     () => new Map(relatedAnalysis.results.map((result) => [result.echo.id, result])),
     [relatedAnalysis.results]
@@ -535,7 +541,12 @@ const SidePanel = () => {
           </div>
         ) : null}
 
-        {view === "home" ? <ProbeDebugPanel analysis={relatedAnalysis} /> : null}
+        {view === "home" ? (
+          <ProbeDebugPanel
+            analysis={relatedAnalysis}
+            lexicalMs={relatedLexicalMs}
+          />
+        ) : null}
 
         {view === "home" && relatedAnalysis.results.length && selectedText.trim() ? (
           <p className="mb-2 text-label-sm text-on-surface-variant">
