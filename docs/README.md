@@ -32,6 +32,7 @@
 | [interview/Echo-case-study.md](./interview/Echo-case-study.md) | 主面试 Case Study（pivot / 评测 / 不上线决策） |
 | [interview/Echo项目面试证据审计-2026-08.md](./interview/Echo项目面试证据审计-2026-08.md) | 已有/缺失证据、P0 补强 |
 | [interview/职业市场研究与岗位策略-2026-08.md](./interview/职业市场研究与岗位策略-2026-08.md) | 岗位策略与目标画像 |
+| [interview/daily/2026-08-04.md](./interview/daily/2026-08-04.md) | Interview Edition 开发日报 |
 
 ## 决策记录
 
