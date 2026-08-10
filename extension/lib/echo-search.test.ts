@@ -31,6 +31,36 @@ describe("Echo search", () => {
     expect(matchesEchoSearch(echo(), "ECHO PRODUCT")).toBe(true)
   })
 
+  it("splits glued Chinese and Latin search terms", () => {
+    const record = echo({
+      title: "第一层：在 About 里明确身份",
+      triggerText: "Chrome 插件"
+    })
+
+    expect(matchesEchoSearch(record, "在About里")).toBe(true)
+    expect(matchesEchoSearch(record, "Chrome插件")).toBe(true)
+  })
+
+  it("treats common query punctuation as separators", () => {
+    const record = echo({
+      triggerText: "交换机与路由器的本质区别",
+      title: "About product decisions"
+    })
+
+    expect(matchesEchoSearch(record, "交换机？")).toBe(true)
+    expect(matchesEchoSearch(record, "about,")).toBe(true)
+  })
+
+  it("keeps technical suffix symbols searchable", () => {
+    const record = echo({
+      triggerText: "Don't break C++ and C# interop notes"
+    })
+
+    expect(matchesEchoSearch(record, "C++")).toBe(true)
+    expect(matchesEchoSearch(record, "C#")).toBe(true)
+    expect(rankEchoSearch(record, "don't")?.match?.terms).toEqual(["don't"])
+  })
+
   it("requires every whitespace-separated term", () => {
     expect(matchesEchoSearch(echo(), "quiet gemini")).toBe(true)
     expect(matchesEchoSearch(echo(), "quiet claude")).toBe(false)

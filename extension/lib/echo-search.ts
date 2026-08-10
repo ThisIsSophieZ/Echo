@@ -35,6 +35,21 @@ const FIELD_CONFIG: Array<{
 export const normalizeSearchText = (value: string) =>
   value.normalize("NFKC").toLocaleLowerCase().replace(/\s+/g, " ").trim()
 
+const searchTerms = (query: string) =>
+  normalizeSearchText(query)
+    .replace(
+      /(\p{Script=Han})([\p{Script=Latin}\p{N}])/gu,
+      "$1 $2"
+    )
+    .replace(
+      /([\p{Script=Latin}\p{N}])(\p{Script=Han})/gu,
+      "$1 $2"
+    )
+    .replace(/[,，。!?！？;；:：()\[\]{}【】《》]+/gu, " ")
+    .split(/\s+/)
+    .map((term) => term.replace(/^[."'“”‘’]+|[."'“”‘’]+$/gu, ""))
+    .filter(Boolean)
+
 const fieldText = (echo: Echo, field: EchoSearchField) => {
   if (field === "title") {
     return [echo.capture?.title?.value, echo.title].filter(Boolean).join("\n")
@@ -61,7 +76,7 @@ const matchSnippet = (value: string, terms: string[], maxLength = 150) => {
 }
 
 export const rankEchoSearch = (echo: Echo, query: string): EchoSearchResult | null => {
-  const terms = normalizeSearchText(query).split(" ").filter(Boolean)
+  const terms = searchTerms(query)
   if (!terms.length) return { echo, score: 0 }
 
   const normalizedQuery = terms.join(" ")
