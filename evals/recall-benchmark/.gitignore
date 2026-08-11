@@ -1,4 +1,8 @@
 node_modules/
 .cache/
 data/embeddings-cache.json
+data/holdout-*.json
+data/holdout-report.md
+data/dev-*.json
+data/dev-report.md
 *.log

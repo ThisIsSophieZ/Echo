@@ -1,6 +1,8 @@
 import { analyzeRelatedEchoes } from "../../../extension/lib/echo-related"
 
 import {
+  GUARDED_MIN_LEXICAL,
+  GUARDED_MIN_VECTOR_SPREAD,
   SURFACE_LIMIT,
   TOP_K,
   VECTOR_MIN_SIM,
@@ -19,10 +21,16 @@ const passageOf = (echo: BenchmarkEcho) =>
 
 export const runBm25 = (
   echoes: BenchmarkEcho[],
-  selection: string
+  selection: string,
+  currentUrl?: string
 ): StrategyRun => {
   const started = performance.now()
-  const analysis = analyzeRelatedEchoes(echoes as any, selection, SURFACE_LIMIT)
+  const analysis = analyzeRelatedEchoes(
+    echoes as any,
+    selection,
+    SURFACE_LIMIT,
+    currentUrl
+  )
   const lexicalMs = performance.now() - started
   const hits: RankedHit[] = analysis.results.map((result: any) => ({
     id: result.echo.id,
@@ -98,13 +106,15 @@ export const runVector = async (
  * then fill remaining slots with high-confidence vector-only ids.
  */
 export const runHybrid = async (
-  echoes: BenchmarkEcho[],
+  lexicalEchoes: BenchmarkEcho[],
+  vectorEchoes: BenchmarkEcho[],
   embeddings: Map<string, number[]>,
-  selection: string
+  selection: string,
+  currentUrl?: string
 ): Promise<StrategyRun> => {
   const stages: Record<string, number> = {}
   const l0 = performance.now()
-  const lexical = runBm25(echoes, selection)
+  const lexical = runBm25(lexicalEchoes, selection, currentUrl)
   stages.lexicalMs = performance.now() - l0
 
   const v0 = performance.now()
@@ -112,7 +122,7 @@ export const runHybrid = async (
   stages.queryEmbedMs = performance.now() - v0
 
   const r0 = performance.now()
-  const vectorRanked = echoes
+  const vectorRanked = vectorEchoes
     .map((echo) => {
       const vector = embeddings.get(echo.id)
       if (!vector) return null
@@ -158,6 +168,67 @@ export const runHybrid = async (
     hits,
     latencyMs: Object.values(stages).reduce((sum, value) => sum + value, 0),
     stages,
+    abstained: hits.length === 0
+  }
+}
+
+/**
+ * Precision-first fusion tuned only on the Report 4 dev set.
+ * Surface one result when both retrievers strongly agree, or when the vector
+ * top result is clearly separated from the rest. Otherwise stay quiet.
+ */
+export const runGuardedHybrid = async (
+  lexicalEchoes: BenchmarkEcho[],
+  vectorEchoes: BenchmarkEcho[],
+  embeddings: Map<string, number[]>,
+  selection: string,
+  currentUrl?: string
+): Promise<StrategyRun> => {
+  const lexical = runBm25(lexicalEchoes, selection, currentUrl)
+  const vector = await runVector(vectorEchoes, embeddings, selection, false)
+  const lexicalTop = lexical.hits[0]
+  const vectorTop = vector.hits[0]
+  const vectorThird = vector.hits[2]
+  const vectorSpread =
+    vectorTop && vectorThird ? vectorTop.score - vectorThird.score : 0
+
+  let hits: RankedHit[] = []
+  if (
+    lexicalTop &&
+    vectorTop &&
+    lexicalTop.id === vectorTop.id &&
+    lexicalTop.score >= GUARDED_MIN_LEXICAL
+  ) {
+    hits = [
+      {
+        ...lexicalTop,
+        source: "bm25",
+        reason: `guarded agreement · lexical ${lexicalTop.score.toFixed(0)} · vector ${vectorTop.score.toFixed(3)}`
+      }
+    ]
+  } else if (
+    vectorTop &&
+    vectorTop.score >= VECTOR_MIN_SIM &&
+    vectorSpread >= GUARDED_MIN_VECTOR_SPREAD
+  ) {
+    hits = [
+      {
+        ...vectorTop,
+        source: "vector",
+        reason: `guarded vector rescue · spread ${vectorSpread.toFixed(3)}`
+      }
+    ]
+  }
+
+  return {
+    name: "guarded-hybrid",
+    hits,
+    latencyMs: lexical.latencyMs + vector.latencyMs,
+    stages: {
+      lexicalMs: lexical.latencyMs,
+      vectorMs: vector.latencyMs,
+      vectorSpread
+    },
     abstained: hits.length === 0
   }
 }

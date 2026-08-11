@@ -16,6 +16,12 @@ export type ExpectedBehavior = "surface" | "abstain"
 export type BenchmarkQuery = {
   id: string
   text: string
+  /** Optional dogfood timestamp used to prevent future-memory leakage. */
+  timestamp?: string
+  /** Source page active when the probe ran, used by the product exact-source gate. */
+  contextUrl?: string
+  /** Exclude a just-captured Echo whose text is the current selection. */
+  excludeSelfMatch?: boolean
   /** Echo ids that SHOULD be recalled if the system surfaces anything. */
   relevant: string[]
   /** Topic-adjacent but should NOT be treated as hits (hard negatives). */
@@ -27,7 +33,7 @@ export type BenchmarkQuery = {
   tags: string[]
 }
 
-export type StrategyName = "bm25" | "vector" | "hybrid"
+export type StrategyName = "bm25" | "vector" | "hybrid" | "guarded-hybrid"
 
 export type RankedHit = {
   id: string

@@ -52,8 +52,10 @@ export type EmbeddingCache = {
   byEchoId: Record<string, number[]>
 }
 
-export const loadEmbeddingCache = (): EmbeddingCache | null => {
-  if (!fs.existsSync(EMBED_CACHE_PATH)) return null
+export const loadEmbeddingCache = (
+  path = EMBED_CACHE_PATH
+): EmbeddingCache | null => {
+  if (!fs.existsSync(path)) return null
   try {
     return JSON.parse(fs.readFileSync(EMBED_CACHE_PATH, "utf8")) as EmbeddingCache
   } catch {
@@ -61,6 +63,9 @@ export const loadEmbeddingCache = (): EmbeddingCache | null => {
   }
 }
 
-export const saveEmbeddingCache = (cache: EmbeddingCache) => {
-  fs.writeFileSync(EMBED_CACHE_PATH, JSON.stringify(cache), "utf8")
+export const saveEmbeddingCache = (
+  cache: EmbeddingCache,
+  path = EMBED_CACHE_PATH
+) => {
+  fs.writeFileSync(path, JSON.stringify(cache), "utf8")
 }

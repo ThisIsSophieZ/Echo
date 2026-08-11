@@ -18,6 +18,7 @@ Strategies on the **same** labeled set:
 1. **bm25** — product `extension/lib/echo-related.ts` `analyzeRelatedEchoes`
 2. **vector** — local `multilingual-e5-small` cosine top-3 (raw)
 3. **hybrid** — lexical accepted first, then vector-only fills with similarity/spread gates
+4. **guarded-hybrid** — dev-tuned precision gate; one result only on strong cross-retriever agreement or clear vector separation
 
 ## Annotation rules (the thinking, not just the JSON)
 
@@ -39,6 +40,24 @@ Lexical-only (no model download):
 ```powershell
 npm run bench:lexical
 ```
+
+## Private dogfood dev / holdout
+
+Private imports, generated reports, metrics, and embedding caches are gitignored.
+Report 4 is the dev set; Report 5 is the frozen holdout.
+
+```powershell
+npm run import:dev -- --backup=<backup.json> --report=<probe-4.md> --labels=<labels-4.md>
+npm run bench:dev
+
+npm run import:holdout -- --backup=<backup.json> --report=<probe-5.md> --labels=<labels-5.json>
+npm run bench:holdout
+```
+
+The runner applies per-query timestamp slicing. It preserves the corpus state
+used for BM25 statistics, passes the active source URL to the product
+exact-source gate, and removes current-selection self matches from vector
+candidates.
 
 ## Swap in real dogfood data
 

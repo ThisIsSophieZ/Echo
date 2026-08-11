@@ -8,6 +8,11 @@
     "seed": "tsx src/seed-fixture.ts",
     "bench": "tsx src/run-benchmark.ts",
     "bench:lexical": "tsx src/run-benchmark.ts --strategies=bm25",
+    "bench:holdout": "tsx src/run-benchmark.ts --dataset=holdout",
+    "bench:holdout:lexical": "tsx src/run-benchmark.ts --dataset=holdout --strategies=bm25",
+    "bench:dev": "tsx src/run-benchmark.ts --dataset=dev",
+    "import:dev": "tsx src/import-dev.ts",
+    "import:holdout": "tsx src/import-holdout.ts",
     "all": "tsx src/seed-fixture.ts && tsx src/run-benchmark.ts"
   },
   "dependencies": {
