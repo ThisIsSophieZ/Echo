@@ -9,6 +9,7 @@ import {
   VECTOR_MIN_SPREAD
 } from "./config"
 import { cosine, embedQuery } from "./embed"
+import { expandWithDevAliases } from "./bilingual-aliases"
 import type { BenchmarkEcho, RankedHit, StrategyRun } from "./types"
 
 const labelOf = (echo: BenchmarkEcho) =>
@@ -45,6 +46,42 @@ export const runBm25 = (
     latencyMs: lexicalMs,
     stages: { lexicalMs },
     abstained: hits.length === 0
+  }
+}
+
+/** Expand only queries that match a frozen Report 4 bilingual phrase group. */
+export const runBm25Alias = (
+  echoes: BenchmarkEcho[],
+  selection: string,
+  currentUrl?: string
+): StrategyRun => {
+  const started = performance.now()
+  const expanded = expandWithDevAliases(selection)
+  if (!expanded.matchedGroupIds.length) {
+    const baseline = runBm25(echoes, selection, currentUrl)
+    return {
+      name: "bm25-alias",
+      hits: baseline.hits,
+      latencyMs: performance.now() - started,
+      stages: { lexicalMs: baseline.latencyMs, aliasGroups: 0 },
+      abstained: baseline.abstained
+    }
+  }
+
+  const expandedRun = runBm25(echoes, expanded.selection, currentUrl)
+  return {
+    name: "bm25-alias",
+    hits: expandedRun.hits.map((hit) => ({
+      ...hit,
+      source: "bm25-alias",
+      reason: `alias expansion (${expanded.matchedGroupIds.join(", ")}) · ${hit.reason || "BM25"}`
+    })),
+    latencyMs: performance.now() - started,
+    stages: {
+      lexicalMs: expandedRun.latencyMs,
+      aliasGroups: expanded.matchedGroupIds.length
+    },
+    abstained: expandedRun.abstained
   }
 }
 

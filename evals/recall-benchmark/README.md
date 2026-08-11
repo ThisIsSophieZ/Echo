@@ -20,6 +20,10 @@ Strategies on the **same** labeled set:
 3. **hybrid** — lexical accepted first, then vector-only fills with similarity/spread gates
 4. **guarded-hybrid** — dev-tuned precision gate; one result only on strong cross-retriever agreement or clear vector separation
 
+The benchmark also includes **bm25-alias**, a dev-frozen bilingual phrase
+expansion over the same product BM25 path. Its reviewed outcome is documented
+in [`BILINGUAL-ALIAS-REPORT.md`](./BILINGUAL-ALIAS-REPORT.md).
+
 ## Annotation rules (the thinking, not just the JSON)
 
 - **relevant**: would change the user's next decision if resurfaced now
@@ -39,6 +43,14 @@ Lexical-only (no model download):
 
 ```powershell
 npm run bench:lexical
+```
+
+Bilingual alias experiment (no model download):
+
+```powershell
+npm run test:alias
+npm run bench:alias:dev
+npm run bench:alias:holdout
 ```
 
 ## Private dogfood dev / holdout

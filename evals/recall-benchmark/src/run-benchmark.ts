@@ -34,6 +34,7 @@ import { aggregate, scoreQuery } from "./metrics"
 import {
   buildPassageMap,
   runBm25,
+  runBm25Alias,
   runGuardedHybrid,
   runHybrid,
   runVector
@@ -101,7 +102,7 @@ const readJson = <T>(path: string): T => {
 
 const parseStrategies = (): StrategyName[] => {
   const arg = process.argv.find((value) => value.startsWith("--strategies="))
-  if (!arg) return ["bm25", "vector", "hybrid", "guarded-hybrid"]
+  if (!arg) return ["bm25", "bm25-alias", "vector", "hybrid", "guarded-hybrid"]
   return arg
     .slice("--strategies=".length)
     .split(",")
@@ -196,6 +197,13 @@ const main = async () => {
     if (strategies.includes("bm25")) {
       runs.bm25 = runBm25(eligibleEchoes, query.text, query.contextUrl)
     }
+    if (strategies.includes("bm25-alias")) {
+      runs["bm25-alias"] = runBm25Alias(
+        eligibleEchoes,
+        query.text,
+        query.contextUrl
+      )
+    }
     if (strategies.includes("vector")) {
       // Raw vector top-3 for metrics (product would still need a gate)
       runs.vector = await runVector(vectorEchoes, embeddings, query.text, false)
@@ -284,14 +292,19 @@ const main = async () => {
     `- Dataset: \`${dataset}\``,
     `- Fixture: \`${corpusFile.fixtureVersion || FIXTURE_VERSION}\``,
     `- Corpus: ${echoes.length} Echoes · Queries: ${queries.length}`,
-    `- Model: \`${MODEL_ID}\` (local)`,
+    needVector ? `- Model: \`${MODEL_ID}\` (local)` : "- Model: not used (lexical-only run)",
     `- Surface limit: ${SURFACE_LIMIT}`,
-    `- Hybrid vector fill gates: minSim=${VECTOR_MIN_SIM}, minSpread=${VECTOR_MIN_SPREAD}`,
-    `- Embedding cold start: ${getColdStartMs()?.toFixed(0) ?? "n/a (cache/warm)"} ms`,
+    ...(needVector
+      ? [
+          `- Hybrid vector fill gates: minSim=${VECTOR_MIN_SIM}, minSpread=${VECTOR_MIN_SPREAD}`,
+          `- Embedding cold start: ${getColdStartMs()?.toFixed(0) ?? "n/a (cache/warm)"} ms`
+        ]
+      : []),
     "",
     "## Method",
     "",
     "- **bm25**: product `analyzeRelatedEchoes` with precision-first gate (what the side panel would show).",
+    "- **bm25-alias**: when a query matches a bilingual phrase group frozen from the Report 4 dev set, append its aliases and rerun the same product BM25 path.",
     "- **vector**: local multilingual-e5-small cosine top-3 (raw; no product gate).",
     "- **hybrid**: lexical accepted first, then vector-only fills that clear similarity/spread gates.",
     `- **guarded-hybrid**: Report 4 dev rule; surface one result only when lexical/vector top-1 agree with lexical >= ${GUARDED_MIN_LEXICAL}, or vector top-1/top-3 spread >= ${GUARDED_MIN_VECTOR_SPREAD}.`,
@@ -330,19 +343,23 @@ const main = async () => {
     )
   }
 
-  lines.push(
-    "",
-    "## Ship / abstain decision",
-    "",
-    "Reading the aggregates together with failure stories:",
-    "",
-    "1. Raw **vector** often improves paraphrase recall but raises false surfaces — cosine is not a confidence score.",
-    "2. Product **bm25** is quieter (precision-first). That matches Echo's low-interruption UX.",
-    "3. **hybrid** is allowed only when vector fills clear similarity + spread gates; if it still worsens false surfaces vs bm25, **do not ship vector into the extension mainline**.",
-    "",
-    "## Representative failure / contrast stories",
-    ""
-  )
+  lines.push("", "## Ship / abstain decision", "")
+  if (needVector) {
+    lines.push(
+      "Reading the aggregates together with failure stories:",
+      "",
+      "1. Raw **vector** often improves paraphrase recall but raises false surfaces; cosine is not a confidence score.",
+      "2. Product **bm25** is quieter (precision-first). That matches Echo's low-interruption UX.",
+      "3. **hybrid** is allowed only when vector fills clear similarity + spread gates; if it still worsens false surfaces vs bm25, **do not ship vector into the extension mainline**.",
+      ""
+    )
+  } else if (strategies.includes("bm25-alias")) {
+    lines.push(
+      "Treat alias gains as directional until a purpose-built bilingual contrast set reproduces them without increasing false surfaces. Keep this strategy out of product code until then.",
+      ""
+    )
+  }
+  lines.push("## Representative failure / contrast stories", "")
   if (uniqueStories.length) {
     lines.push(...uniqueStories, "")
   } else {

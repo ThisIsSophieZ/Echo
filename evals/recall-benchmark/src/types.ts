@@ -33,7 +33,12 @@ export type BenchmarkQuery = {
   tags: string[]
 }
 
-export type StrategyName = "bm25" | "vector" | "hybrid" | "guarded-hybrid"
+export type StrategyName =
+  | "bm25"
+  | "bm25-alias"
+  | "vector"
+  | "hybrid"
+  | "guarded-hybrid"
 
 export type RankedHit = {
   id: string
