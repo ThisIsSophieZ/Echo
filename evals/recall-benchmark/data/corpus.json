@@ -1,0 +1,557 @@
+{
+  "fixtureVersion": "2026-08-dogfood-v1",
+  "note": "Dogfood-realistic fixture (not a private IndexedDB dump). Same schema as browser export.",
+  "echoes": [
+    {
+      "id": "e01",
+      "userThought": "先用便宜的小模型跑一遍,把明显不行的筛掉,只把拿不准的交给贵的那个",
+      "title": "模型分级路由",
+      "triggerText": "Route easy cases to a cheap model and only escalate the hard ones.",
+      "sourceApp": "chatgpt",
+      "url": "https://chatgpt.com/c/e01",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:19:55.844Z"
+    },
+    {
+      "id": "e02",
+      "userThought": "同样的问题把结果缓存下来,别每次都重新烧一遍钱",
+      "title": "响应缓存",
+      "triggerText": "Cache repeated prompts so you stop paying for the same answer twice.",
+      "sourceApp": "claude",
+      "url": "https://claude.ai/chat/e02",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:20:55.844Z"
+    },
+    {
+      "id": "e03",
+      "userThought": "切块别按固定字数硬切,按语义边界切,召回质量高很多",
+      "title": "语义切块",
+      "triggerText": "Semantic chunking beats fixed-size splitting for retrieval quality.",
+      "sourceApp": "chatgpt",
+      "url": "https://chatgpt.com/c/e03",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:21:55.844Z"
+    },
+    {
+      "id": "e04",
+      "userThought": "关键词搜索最大的毛病是换个说法就搜不到,向量能抓住意思一样的",
+      "title": "为什么需要向量检索",
+      "triggerText": "Keyword search misses paraphrases; embeddings capture meaning.",
+      "sourceApp": "gemini",
+      "url": "https://gemini.google.com/app/e04",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:22:55.844Z"
+    },
+    {
+      "id": "e05",
+      "userThought": "Agent 必须记住上一轮聊过什么,不然每次都从头再来,太蠢了",
+      "title": "Agent 记忆",
+      "triggerText": "Agents need to remember prior turns instead of starting cold each time.",
+      "sourceApp": "claude",
+      "url": "https://claude.ai/chat/e05",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:23:55.844Z"
+    },
+    {
+      "id": "e06",
+      "userThought": "把会话状态落到库里,进程重启也不会把进度弄丢",
+      "title": "会话持久化",
+      "triggerText": "Persist conversation state to a database so restarts don't lose progress.",
+      "sourceApp": "chatgpt",
+      "url": "https://chatgpt.com/c/e06",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:24:55.844Z"
+    },
+    {
+      "id": "e07",
+      "userThought": "自己天天用才知道哪里别扭;你自己都不愿意用的功能,就是还没想清楚",
+      "title": "先自己用",
+      "triggerText": "If you won't use it every day, it isn't ready to ship.",
+      "sourceApp": "grok",
+      "url": "https://grok.com/chat/e07",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:25:55.844Z"
+    },
+    {
+      "id": "e08",
+      "userThought": "存东西这一步只要有一丁点摩擦,人就干脆不存了",
+      "title": "零摩擦捕获",
+      "triggerText": "Any friction in the capture step quietly kills the habit.",
+      "sourceApp": "chatgpt",
+      "url": "https://chatgpt.com/c/e08",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:26:55.844Z"
+    },
+    {
+      "id": "e09",
+      "userThought": "定价先放个贵的选项当锚点,后面的就显得划算了",
+      "title": "定价锚定",
+      "triggerText": "Show an expensive option first so everything else looks reasonable.",
+      "sourceApp": "claude",
+      "url": "https://claude.ai/chat/e09",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:27:55.844Z"
+    },
+    {
+      "id": "e10",
+      "userThought": "新用户头两分钟没感觉到价值就走了,首屏必须直接给结果",
+      "title": "首次体验",
+      "triggerText": "If users don't feel value in the first two minutes, they leave.",
+      "sourceApp": "gemini",
+      "url": "https://gemini.google.com/app/e10",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:28:55.844Z"
+    },
+    {
+      "id": "e11",
+      "userThought": "TiDB 里用 VEC_COSINE_DISTANCE 给结果按相似度排序",
+      "title": "TiDB 向量查询",
+      "triggerText": "Order rows by VEC_COSINE_DISTANCE in TiDB for similarity search.",
+      "sourceApp": "chatgpt",
+      "url": "https://chatgpt.com/c/e11",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:29:55.844Z"
+    },
+    {
+      "id": "e12",
+      "userThought": "周报别写成流水账,只写卡点和要做的决策",
+      "title": "周报怎么写",
+      "triggerText": "Weekly updates should list blockers and decisions, not an activity log.",
+      "sourceApp": "claude",
+      "url": "https://claude.ai/chat/e12",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:30:55.844Z"
+    },
+    {
+      "id": "e13",
+      "userThought": "冷启动别急着投广告,先手动找到 100 个真的离不开你的用户",
+      "title": "冷启动获客",
+      "triggerText": "Find 100 users who love it before you scale acquisition.",
+      "sourceApp": "grok",
+      "url": "https://grok.com/chat/e13",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:31:55.844Z"
+    },
+    {
+      "id": "e14",
+      "userThought": "别过早优化性能,先把能用的东西做出来再说",
+      "title": "别过早优化",
+      "triggerText": "Don't optimize before you have something that actually works.",
+      "sourceApp": "chatgpt",
+      "url": "https://chatgpt.com/c/e14",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:32:55.844Z"
+    },
+    {
+      "id": "e15",
+      "userThought": "能异步就别开会,别为了同步硬凑一个所有人都在的时间",
+      "title": "异步优先",
+      "triggerText": "Prefer async over forcing everyone into a synchronous meeting.",
+      "sourceApp": "claude",
+      "url": "https://claude.ai/chat/e15",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:33:55.844Z"
+    },
+    {
+      "id": "e16",
+      "userThought": "文档写完没人搜得到就等于白写,能被检索到才算数",
+      "title": "文档要能被搜到",
+      "triggerText": "Docs nobody can find are worthless; retrievability is the whole point.",
+      "sourceApp": "gemini",
+      "url": "https://gemini.google.com/app/e16",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:34:55.844Z"
+    },
+    {
+      "id": "e17",
+      "userThought": "embedding 先归一化,再用余弦相似度会稳很多",
+      "title": "归一化向量",
+      "triggerText": "Normalize embeddings before cosine similarity for stable results.",
+      "sourceApp": "chatgpt",
+      "url": "https://chatgpt.com/c/e17",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:35:55.844Z"
+    },
+    {
+      "id": "e18",
+      "userThought": "提示词里直接给几个例子,比长篇讲规则管用多了",
+      "title": "少样本示例",
+      "triggerText": "A few concrete examples in the prompt beat a long list of rules.",
+      "sourceApp": "claude",
+      "url": "https://claude.ai/chat/e18",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:36:55.844Z"
+    },
+    {
+      "id": "e19",
+      "userThought": "用户不会为了整理 AI 对话专门打开另一个本地 App,入口必须长在已有工作流里",
+      "title": "Collect 被推翻的原因",
+      "triggerText": "People will not open a separate desktop app just to manage chat snippets.",
+      "sourceApp": "chatgpt",
+      "url": "https://chatgpt.com/c/e19",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:37:55.844Z"
+    },
+    {
+      "id": "e20",
+      "userThought": "侧边栏常驻比独立工具重要:捕获和浮现都要零启动",
+      "title": "转向浏览器 Side Panel",
+      "triggerText": "Keep capture and resurfacing inside the browser side panel the user already has open.",
+      "sourceApp": "claude",
+      "url": "https://claude.ai/chat/e20",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:38:55.844Z"
+    },
+    {
+      "id": "e21",
+      "userThought": "宁可沉默也不要用泛词把十几个弱匹配推到脸上",
+      "title": "精度优先于召回",
+      "triggerText": "Prefer silence over surfacing a pile of weak single-token matches.",
+      "sourceApp": "chatgpt",
+      "url": "https://chatgpt.com/c/e21",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:39:55.844Z"
+    },
+    {
+      "id": "e22",
+      "userThought": "Probe 报告要能解释为什么接受或拒绝,不能只丢一个神秘分数",
+      "title": "可解释召回",
+      "triggerText": "Every accept/reject needs an explainable ledger, not a black-box confidence.",
+      "sourceApp": "gemini",
+      "url": "https://gemini.google.com/app/e22",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:40:55.844Z"
+    },
+    {
+      "id": "e23",
+      "userThought": "单词匹配一律不浮现;至少要有连续短语或三个有效词",
+      "title": "Precision-first gate",
+      "triggerText": "Single-token lexical hits never surface; require a phrase or three solid terms.",
+      "sourceApp": "chatgpt",
+      "url": "https://chatgpt.com/c/e23",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:41:55.844Z"
+    },
+    {
+      "id": "e24",
+      "userThought": "动态 DOM 和虚拟列表下,锚点要用原生 ID + 指纹 + 邻居消歧 + 失败回退",
+      "title": "Anchor v2",
+      "triggerText": "Locate messages with native ids, SHA-256 fingerprints, neighbor disambiguation, and fallbacks.",
+      "sourceApp": "claude",
+      "url": "https://claude.ai/chat/e24",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:42:55.844Z"
+    },
+    {
+      "id": "e25",
+      "userThought": "MV3 Service Worker 会睡死,补想法要先入 chrome.storage 队列再写 Dexie",
+      "title": "写入竞态恢复",
+      "triggerText": "Queue pending thought writes in chrome.storage.local before Dexie commits.",
+      "sourceApp": "chatgpt",
+      "url": "https://chatgpt.com/c/e25",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:43:55.844Z"
+    },
+    {
+      "id": "e26",
+      "userThought": "记忆层不是 Agent:不要自动替用户做决定,人必须确认",
+      "title": "人在回路",
+      "triggerText": "A memory layer should resurface candidates; humans confirm what to use.",
+      "sourceApp": "grok",
+      "url": "https://grok.com/chat/e26",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:44:55.844Z"
+    },
+    {
+      "id": "e27",
+      "userThought": "本地优先:默认不上传对话,导出才是用户主动带走数据",
+      "title": "Local-first 隐私",
+      "triggerText": "Keep Echoes in IndexedDB by default; export is the only intentional leave-device path.",
+      "sourceApp": "claude",
+      "url": "https://claude.ai/chat/e27",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:45:55.844Z"
+    },
+    {
+      "id": "e28",
+      "userThought": "相关但时机不对,不能当成内容不相关;反馈要拆 wrong_time",
+      "title": "区分时机与相关性",
+      "triggerText": "Wrong timing is not the same as irrelevant content; keep those feedback signals separate.",
+      "sourceApp": "chatgpt",
+      "url": "https://chatgpt.com/c/e28",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:46:55.844Z"
+    },
+    {
+      "id": "e29",
+      "userThought": "向量相似度挤在一起时,不能拿绝对 cosine 当置信度",
+      "title": "相似度拥挤",
+      "triggerText": "When top-k cosine scores cluster tightly, absolute similarity is not confidence.",
+      "sourceApp": "gemini",
+      "url": "https://gemini.google.com/app/e29",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:47:55.844Z"
+    },
+    {
+      "id": "e30",
+      "userThought": "Hybrid 应该是词法候选并上语义候选,再 precision-first 重排,而不是直接替换 BM25",
+      "title": "Hybrid 不是替换",
+      "triggerText": "Hybrid means union then gated rerank, not dropping lexical recall wholesale.",
+      "sourceApp": "chatgpt",
+      "url": "https://chatgpt.com/c/e30",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:48:55.844Z"
+    },
+    {
+      "id": "e31",
+      "userThought": "评测先有 golden set,再谈换 embedding 或上 reranker",
+      "title": "先评测再调模型",
+      "triggerText": "Build a labeled recall set before swapping embedding models or adding rerankers.",
+      "sourceApp": "claude",
+      "url": "https://claude.ai/chat/e31",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:49:55.844Z"
+    },
+    {
+      "id": "e32",
+      "userThought": "面试叙事要讲清:我如何用 1493 个候选诊断推翻第一版召回",
+      "title": "用诊断数据推翻算法",
+      "triggerText": "Show how probe ledgers and failure counts drove the precision-first redesign.",
+      "sourceApp": "chatgpt",
+      "url": "https://chatgpt.com/c/e32",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:50:55.844Z"
+    },
+    {
+      "id": "e33",
+      "userThought": "实用、这个、快速这类泛词在中文里会制造大量误匹配",
+      "title": "中文泛词陷阱",
+      "triggerText": "Generic Chinese tokens create false positives if single-token matches can surface.",
+      "sourceApp": "gemini",
+      "url": "https://gemini.google.com/app/e33",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:51:55.844Z"
+    },
+    {
+      "id": "e34",
+      "userThought": "备份导入导出按 id upsert,狗粮迁移和重装扩展才不怕丢数据",
+      "title": "备份恢复",
+      "triggerText": "Backup/import should upsert by id so reinstalls and forks do not lose Echoes.",
+      "sourceApp": "chatgpt",
+      "url": "https://chatgpt.com/c/e34",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:52:55.844Z"
+    },
+    {
+      "id": "e35",
+      "userThought": "Chrome 扩展路径改了会换 ID,IndexedDB 不会跟着走;用 junction 或备份导入",
+      "title": "扩展 ID 与数据绑定",
+      "triggerText": "Unpacked extension path changes change the extension id and orphan IndexedDB.",
+      "sourceApp": "claude",
+      "url": "https://claude.ai/chat/e35",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:53:55.844Z"
+    },
+    {
+      "id": "e36",
+      "userThought": "不要为了简历临时搭一个没有用户的云后端",
+      "title": "不做假后端",
+      "triggerText": "A fake multi-tenant backend built only for resumes is negative signal.",
+      "sourceApp": "grok",
+      "url": "https://grok.com/chat/e36",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:54:55.844Z"
+    },
+    {
+      "id": "e37",
+      "userThought": "失败案例比平均分更有说服力:挑出误浮现和漏召回各讲清楚",
+      "title": "失败案例叙事",
+      "triggerText": "Interviewers trust concrete false-positive and false-negative stories over averages alone.",
+      "sourceApp": "chatgpt",
+      "url": "https://chatgpt.com/c/e37",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:55:55.844Z"
+    },
+    {
+      "id": "e38",
+      "userThought": "LLM 页面标题会变,捕获时要解析真实会话标题而不是 tab 默认名",
+      "title": "标题解析",
+      "triggerText": "Resolve the real conversation title instead of trusting a generic browser tab name.",
+      "sourceApp": "claude",
+      "url": "https://claude.ai/chat/e38",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:56:55.844Z"
+    },
+    {
+      "id": "e39",
+      "userThought": "内容脚本在扩展 reload 后会过期,用户需要刷新 LLM 标签页",
+      "title": "Content script 过期",
+      "triggerText": "After extension reload, content scripts on open tabs go stale until refresh.",
+      "sourceApp": "chatgpt",
+      "url": "https://chatgpt.com/c/e39",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:57:55.844Z"
+    },
+    {
+      "id": "e40",
+      "userThought": "搜索是本地过滤已加载数组,暂时不需要单独的全文索引",
+      "title": "本地搜索策略",
+      "triggerText": "Client-side filter over the loaded Echo array is enough at dogfood scale.",
+      "sourceApp": "gemini",
+      "url": "https://gemini.google.com/app/e40",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:58:55.844Z"
+    },
+    {
+      "id": "e41",
+      "userThought": "被推翻的想法要能标记,否则旧结论会在新语境里继续误导",
+      "title": "过期想法治理",
+      "triggerText": "Superseded ideas need status so resurfacing does not revive dead conclusions.",
+      "sourceApp": "chatgpt",
+      "url": "https://chatgpt.com/c/e41",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T13:59:55.844Z"
+    },
+    {
+      "id": "e42",
+      "userThought": "多模型对照时记录分歧,不要假装只有一个正确答案",
+      "title": "多模型分歧",
+      "triggerText": "When models disagree, capture the disagreement instead of forcing a single answer.",
+      "sourceApp": "claude",
+      "url": "https://claude.ai/chat/e42",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T14:00:55.844Z"
+    },
+    {
+      "id": "e43",
+      "userThought": "成本看板要分冷启动和热运行,否则 embedding 模型下载会污染延迟数字",
+      "title": "冷热延迟分开报",
+      "triggerText": "Report cold-start and warm latency separately for embedding pipelines.",
+      "sourceApp": "chatgpt",
+      "url": "https://chatgpt.com/c/e43",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T14:01:55.844Z"
+    },
+    {
+      "id": "e44",
+      "userThought": "威胁模型一页就够:扩展可读范围、临时选区、导出内容、第三方 API 边界",
+      "title": "轻量威胁模型",
+      "triggerText": "A one-page threat model covering page access, selection, export, and third-party APIs is enough.",
+      "sourceApp": "grok",
+      "url": "https://grok.com/chat/e44",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T14:02:55.844Z"
+    },
+    {
+      "id": "e45",
+      "userThought": "实用工具清单可以很长,但那不等于我现在要做这些功能",
+      "title": "泛词噪声样本",
+      "triggerText": "A long list of practical tips is not a commitment to build every tip.",
+      "sourceApp": "chatgpt",
+      "url": "https://chatgpt.com/c/e45",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T14:03:55.844Z"
+    },
+    {
+      "id": "e46",
+      "userThought": "这个方案看起来很快,但快速落地不等于解决了误打扰",
+      "title": "快速≠正确",
+      "triggerText": "Shipping fast is not the same as fixing false resurfacing.",
+      "sourceApp": "claude",
+      "url": "https://claude.ai/chat/e46",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T14:04:55.844Z"
+    },
+    {
+      "id": "e47",
+      "userThought": "咖啡豆烘焙曲线和产品路线图无关,只是偶然聊到的兴趣",
+      "title": "无关兴趣噪声",
+      "triggerText": "Coffee roasting curves are an unrelated hobby chat, not product memory.",
+      "sourceApp": "gemini",
+      "url": "https://gemini.google.com/app/e47",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T14:05:55.844Z"
+    },
+    {
+      "id": "e48",
+      "userThought": "健身房卧推计划本周完成三次,跟 AI 记忆产品无关",
+      "title": "生活噪声",
+      "triggerText": "Gym schedule notes should never resurface during LLM engineering work.",
+      "sourceApp": "chatgpt",
+      "url": "https://chatgpt.com/c/e48",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T14:06:55.844Z"
+    },
+    {
+      "id": "e49",
+      "userThought": "旧假设:独立 Collect 桌面端是正确入口——已推翻,勿再当正例",
+      "title": "已推翻的 Collect 假设",
+      "triggerText": "Deprecated hypothesis: a standalone Collect desktop app is the right entry point.",
+      "sourceApp": "claude",
+      "url": "https://claude.ai/chat/e49",
+      "inferredThought": "superseded by side-panel Echo",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T14:07:55.844Z"
+    },
+    {
+      "id": "e50",
+      "userThought": "旧假设:把所有 AI 原文全文存下来以后总能搜到——已推翻",
+      "title": "已推翻的全文囤积",
+      "triggerText": "Deprecated hypothesis: store entire AI transcripts and search later.",
+      "sourceApp": "chatgpt",
+      "url": "https://chatgpt.com/c/e50",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T14:08:55.844Z"
+    },
+    {
+      "id": "e51",
+      "userThought": "Reranker 可以晚一点上,先证明 hybrid 候选生成是否值得",
+      "title": "Rerank 排期",
+      "triggerText": "Prove hybrid candidate generation before investing in a cross-encoder reranker.",
+      "sourceApp": "gemini",
+      "url": "https://gemini.google.com/app/e51",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T14:09:55.844Z"
+    },
+    {
+      "id": "e52",
+      "userThought": "Trace 默认本地可导出,不要为了 observability 强行上云监控",
+      "title": "本地可观测性",
+      "triggerText": "Local-first products can prove observability with exportable traces, not cloud APM.",
+      "sourceApp": "claude",
+      "url": "https://claude.ai/chat/e52",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T14:10:55.844Z"
+    },
+    {
+      "id": "e53",
+      "userThought": "英文 paraphrase 测试: cheap model first, escalate only uncertain cases",
+      "title": "Bilingual routing note",
+      "triggerText": "Keep a bilingual twin of the routing idea for mixed-language selections.",
+      "sourceApp": "chatgpt",
+      "url": "https://chatgpt.com/c/e53",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T14:11:55.844Z"
+    },
+    {
+      "id": "e54",
+      "userThought": "同词异义:苹果公司财报 versus 苹果派食谱,检索必须靠上下文消歧",
+      "title": "同词异义消歧",
+      "triggerText": "The token apple needs context to decide between company filings and pie recipes.",
+      "sourceApp": "grok",
+      "url": "https://grok.com/chat/e54",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T14:12:55.844Z"
+    },
+    {
+      "id": "e55",
+      "userThought": "周末想做苹果派,黄油要提前从冰箱拿出来软化",
+      "title": "苹果派食谱",
+      "triggerText": "Take the butter out early so it softens before you make apple pie.",
+      "sourceApp": "chatgpt",
+      "url": "https://chatgpt.com/c/e55",
+      "status": "confirmed",
+      "createdAt": "2026-08-03T14:13:55.844Z"
+    }
+  ]
+}

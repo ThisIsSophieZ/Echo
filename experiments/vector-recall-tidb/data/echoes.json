@@ -1,0 +1,183 @@
+[
+  {
+    "id": "e01",
+    "userThought": "先用便宜的小模型跑一遍,把明显不行的筛掉,只把拿不准的交给贵的那个",
+    "title": "模型分级路由",
+    "triggerText": "Route easy cases to a cheap model and only escalate the hard ones.",
+    "inferredThought": "",
+    "sourceApp": "chatgpt",
+    "url": "https://chatgpt.com/c/e01",
+    "status": "confirmed",
+    "createdAt": "2026-07-04T07:50:57.233Z"
+  },
+  {
+    "id": "e02",
+    "userThought": "同样的问题把结果缓存下来,别每次都重新烧一遍钱",
+    "title": "响应缓存",
+    "triggerText": "Cache repeated prompts so you stop paying for the same answer twice.",
+    "sourceApp": "claude",
+    "url": "https://claude.ai/chat/e02",
+    "status": "confirmed",
+    "createdAt": "2026-07-04T07:51:57.233Z"
+  },
+  {
+    "id": "e03",
+    "userThought": "切块别按固定字数硬切,按语义边界切,召回质量高很多",
+    "title": "语义切块",
+    "triggerText": "Semantic chunking beats fixed-size splitting for retrieval quality.",
+    "sourceApp": "chatgpt",
+    "url": "https://chatgpt.com/c/e03",
+    "status": "confirmed",
+    "createdAt": "2026-07-04T07:52:57.233Z"
+  },
+  {
+    "id": "e04",
+    "userThought": "关键词搜索最大的毛病是换个说法就搜不到,向量能抓住意思一样的",
+    "title": "为什么需要向量检索",
+    "triggerText": "Keyword search misses paraphrases; embeddings capture meaning.",
+    "sourceApp": "gemini",
+    "url": "https://gemini.google.com/app/e04",
+    "status": "confirmed",
+    "createdAt": "2026-07-04T07:53:57.233Z"
+  },
+  {
+    "id": "e05",
+    "userThought": "Agent 必须记住上一轮聊过什么,不然每次都从头再来,太蠢了",
+    "title": "Agent 记忆",
+    "triggerText": "Agents need to remember prior turns instead of starting cold each time.",
+    "sourceApp": "claude",
+    "url": "https://claude.ai/chat/e05",
+    "status": "confirmed",
+    "createdAt": "2026-07-04T07:54:57.233Z"
+  },
+  {
+    "id": "e06",
+    "userThought": "把会话状态落到库里,进程重启也不会把进度弄丢",
+    "title": "会话持久化",
+    "triggerText": "Persist conversation state to a database so restarts don't lose progress.",
+    "sourceApp": "chatgpt",
+    "url": "https://chatgpt.com/c/e06",
+    "status": "confirmed",
+    "createdAt": "2026-07-04T07:55:57.233Z"
+  },
+  {
+    "id": "e07",
+    "userThought": "自己天天用才知道哪里别扭;你自己都不愿意用的功能,就是还没想清楚",
+    "title": "先自己用",
+    "triggerText": "If you won't use it every day, it isn't ready to ship.",
+    "sourceApp": "grok",
+    "url": "https://grok.com/chat/e07",
+    "status": "confirmed",
+    "createdAt": "2026-07-04T07:56:57.233Z"
+  },
+  {
+    "id": "e08",
+    "userThought": "存东西这一步只要有一丁点摩擦,人就干脆不存了",
+    "title": "零摩擦捕获",
+    "triggerText": "Any friction in the capture step quietly kills the habit.",
+    "sourceApp": "chatgpt",
+    "url": "https://chatgpt.com/c/e08",
+    "status": "confirmed",
+    "createdAt": "2026-07-04T07:57:57.233Z"
+  },
+  {
+    "id": "e09",
+    "userThought": "定价先放个贵的选项当锚点,后面的就显得划算了",
+    "title": "定价锚定",
+    "triggerText": "Show an expensive option first so everything else looks reasonable.",
+    "sourceApp": "claude",
+    "url": "https://claude.ai/chat/e09",
+    "status": "confirmed",
+    "createdAt": "2026-07-04T07:58:57.233Z"
+  },
+  {
+    "id": "e10",
+    "userThought": "新用户头两分钟没感觉到价值就走了,首屏必须直接给结果",
+    "title": "首次体验",
+    "triggerText": "If users don't feel value in the first two minutes, they leave.",
+    "sourceApp": "gemini",
+    "url": "https://gemini.google.com/app/e10",
+    "status": "confirmed",
+    "createdAt": "2026-07-04T07:59:57.233Z"
+  },
+  {
+    "id": "e11",
+    "userThought": "TiDB 里用 VEC_COSINE_DISTANCE 给结果按相似度排序",
+    "title": "TiDB 向量查询",
+    "triggerText": "Order rows by VEC_COSINE_DISTANCE in TiDB for similarity search.",
+    "sourceApp": "chatgpt",
+    "url": "https://chatgpt.com/c/e11",
+    "status": "confirmed",
+    "createdAt": "2026-07-04T08:00:57.233Z"
+  },
+  {
+    "id": "e12",
+    "userThought": "周报别写成流水账,只写卡点和要做的决策",
+    "title": "周报怎么写",
+    "triggerText": "Weekly updates should list blockers and decisions, not an activity log.",
+    "sourceApp": "claude",
+    "url": "https://claude.ai/chat/e12",
+    "status": "confirmed",
+    "createdAt": "2026-07-04T08:01:57.233Z"
+  },
+  {
+    "id": "e13",
+    "userThought": "冷启动别急着投广告,先手动找到 100 个真的离不开你的用户",
+    "title": "冷启动获客",
+    "triggerText": "Find 100 users who love it before you scale acquisition.",
+    "sourceApp": "grok",
+    "url": "https://grok.com/chat/e13",
+    "status": "confirmed",
+    "createdAt": "2026-07-04T08:02:57.233Z"
+  },
+  {
+    "id": "e14",
+    "userThought": "别过早优化性能,先把能用的东西做出来再说",
+    "title": "别过早优化",
+    "triggerText": "Don't optimize before you have something that actually works.",
+    "sourceApp": "chatgpt",
+    "url": "https://chatgpt.com/c/e14",
+    "status": "confirmed",
+    "createdAt": "2026-07-04T08:03:57.233Z"
+  },
+  {
+    "id": "e15",
+    "userThought": "能异步就别开会,别为了同步硬凑一个所有人都在的时间",
+    "title": "异步优先",
+    "triggerText": "Prefer async over forcing everyone into a synchronous meeting.",
+    "sourceApp": "claude",
+    "url": "https://claude.ai/chat/e15",
+    "status": "confirmed",
+    "createdAt": "2026-07-04T08:04:57.233Z"
+  },
+  {
+    "id": "e16",
+    "userThought": "文档写完没人搜得到就等于白写,能被检索到才算数",
+    "title": "文档要能被搜到",
+    "triggerText": "Docs nobody can find are worthless; retrievability is the whole point.",
+    "sourceApp": "gemini",
+    "url": "https://gemini.google.com/app/e16",
+    "status": "confirmed",
+    "createdAt": "2026-07-04T08:05:57.233Z"
+  },
+  {
+    "id": "e17",
+    "userThought": "embedding 先归一化,再用余弦相似度会稳很多",
+    "title": "归一化向量",
+    "triggerText": "Normalize embeddings before cosine similarity for stable results.",
+    "sourceApp": "chatgpt",
+    "url": "https://chatgpt.com/c/e17",
+    "status": "confirmed",
+    "createdAt": "2026-07-04T08:06:57.233Z"
+  },
+  {
+    "id": "e18",
+    "userThought": "提示词里直接给几个例子,比长篇讲规则管用多了",
+    "title": "少样本示例",
+    "triggerText": "A few concrete examples in the prompt beat a long list of rules.",
+    "sourceApp": "claude",
+    "url": "https://claude.ai/chat/e18",
+    "status": "confirmed",
+    "createdAt": "2026-07-04T08:07:57.233Z"
+  }
+]

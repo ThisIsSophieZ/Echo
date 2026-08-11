@@ -1,0 +1,25 @@
+{
+  "name": "echo-recall-benchmark",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Offline recall benchmark for Echo: BM25 (product) vs local embeddings vs hybrid. Not product code.",
+  "scripts": {
+    "seed": "tsx src/seed-fixture.ts",
+    "bench": "tsx src/run-benchmark.ts",
+    "bench:lexical": "tsx src/run-benchmark.ts --strategies=bm25",
+    "bench:holdout": "tsx src/run-benchmark.ts --dataset=holdout",
+    "bench:holdout:lexical": "tsx src/run-benchmark.ts --dataset=holdout --strategies=bm25",
+    "bench:dev": "tsx src/run-benchmark.ts --dataset=dev",
+    "import:dev": "tsx src/import-dev.ts",
+    "import:holdout": "tsx src/import-holdout.ts",
+    "all": "tsx src/seed-fixture.ts && tsx src/run-benchmark.ts"
+  },
+  "dependencies": {
+    "@xenova/transformers": "^2.17.2"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

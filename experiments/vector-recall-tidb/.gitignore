@@ -1,0 +1,9 @@
+# TiDB Cloud Zero instance response — contains DB credentials, never commit
+data/instance.json
+
+# Generated comparison output (regenerate any time)
+data/report.md
+
+# Local embedding model cache downloaded by transformers.js
+.cache/
+node_modules/

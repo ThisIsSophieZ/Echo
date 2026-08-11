@@ -4,6 +4,11 @@ import { History, Home, Lightbulb, Plus, Search, Settings, X, Zap } from "lucide
 import { EchoCard } from "~components/EchoCard"
 import { ProbeDebugPanel } from "~components/ProbeDebugPanel"
 import {
+  downloadEchoBackupFile,
+  importEchoBackup,
+  parseEchoBackup
+} from "~db/echo-backup"
+import {
   addUserThought,
   createEcho,
   deleteEcho,
@@ -80,7 +85,11 @@ const SidePanel = () => {
   const [deletedEcho, setDeletedEcho] = useState<Echo | null>(null)
   const [isDraftLoaded, setIsDraftLoaded] = useState(false)
   const [selectedText, setSelectedText] = useState("")
+  const [showBackupPanel, setShowBackupPanel] = useState(false)
+  const [backupStatus, setBackupStatus] = useState<string | null>(null)
+  const [isBackupBusy, setIsBackupBusy] = useState(false)
   const undoTimer = useRef<number | null>(null)
+  const backupFileInputRef = useRef<HTMLInputElement | null>(null)
 
   const sourceApp = useMemo(() => detectSourceApp(context.url), [context.url])
   const searchResults = useMemo(
@@ -99,10 +108,16 @@ const SidePanel = () => {
     () => new Map(searchResults.map((result) => [result.echo.id, result.match])),
     [searchResults]
   )
-  const relatedAnalysis = useMemo(
-    () => analyzeRelatedEchoes(echoes, selectedText, 3, context.url),
-    [context.url, echoes, selectedText]
-  )
+  const relatedAnalysisBundle = useMemo(() => {
+    const started = performance.now()
+    const analysis = analyzeRelatedEchoes(echoes, selectedText, 3, context.url)
+    return {
+      analysis,
+      lexicalMs: performance.now() - started
+    }
+  }, [context.url, echoes, selectedText])
+  const relatedAnalysis = relatedAnalysisBundle.analysis
+  const relatedLexicalMs = relatedAnalysisBundle.lexicalMs
   const relatedById = useMemo(
     () => new Map(relatedAnalysis.results.map((result) => [result.echo.id, result])),
     [relatedAnalysis.results]
@@ -331,6 +346,46 @@ const SidePanel = () => {
     })
   }
 
+  const handleExportBackup = async () => {
+    setIsBackupBusy(true)
+    setBackupStatus(null)
+    try {
+      const count = await downloadEchoBackupFile()
+      setBackupStatus(`已导出 ${count} 条 · 请收好 JSON 文件`)
+    } catch (error) {
+      setBackupStatus(
+        `导出失败：${error instanceof Error ? error.message : String(error)}`
+      )
+    } finally {
+      setIsBackupBusy(false)
+    }
+  }
+
+  const handleImportBackupFile = async (file: File | null) => {
+    if (!file) return
+
+    setIsBackupBusy(true)
+    setBackupStatus(null)
+    try {
+      const raw = await file.text()
+      const backup = parseEchoBackup(raw)
+      const result = await importEchoBackup(backup)
+      await refreshEchoes()
+      await notifyEchoListChanged()
+      setBackupStatus(
+        `已导入 ${result.imported} 条` +
+          (result.skipped ? ` · 跳过 ${result.skipped}` : "")
+      )
+    } catch (error) {
+      setBackupStatus(
+        `导入失败：${error instanceof Error ? error.message : String(error)}`
+      )
+    } finally {
+      setIsBackupBusy(false)
+      if (backupFileInputRef.current) backupFileInputRef.current.value = ""
+    }
+  }
+
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-surface text-on-surface">
       <header className="sticky top-0 z-50 flex h-[48px] w-full items-center justify-between border-b border-outline-variant bg-surface px-margin-side">
@@ -349,15 +404,56 @@ const SidePanel = () => {
             <Plus size={20} />
           </button>
           <button
-            aria-label="Settings"
-            className="cursor-not-allowed rounded-full p-2 text-on-surface-variant/40"
-            disabled
-            title="Settings（即将推出）"
+            aria-label="Backup"
+            aria-pressed={showBackupPanel}
+            className={`rounded-full p-2 transition-colors active:scale-95 ${
+              showBackupPanel
+                ? "bg-secondary-container text-on-secondary-container"
+                : "text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface"
+            }`}
+            onClick={() => setShowBackupPanel((value) => !value)}
+            title="备份"
             type="button">
             <Settings size={20} />
           </button>
         </div>
       </header>
+
+      {showBackupPanel ? (
+        <section className="border-b border-outline-variant bg-surface-container-lowest px-margin-side py-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              className="rounded-full border border-outline-variant bg-white px-3 py-1.5 text-label-md text-secondary transition-colors hover:bg-secondary-container disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={isBackupBusy}
+              onClick={handleExportBackup}
+              type="button">
+              导出 JSON
+            </button>
+            <button
+              className="rounded-full border border-outline-variant bg-white px-3 py-1.5 text-label-md text-secondary transition-colors hover:bg-secondary-container disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={isBackupBusy}
+              onClick={() => backupFileInputRef.current?.click()}
+              type="button">
+              导入 JSON
+            </button>
+            <input
+              accept="application/json,.json"
+              className="hidden"
+              onChange={(event) =>
+                void handleImportBackupFile(event.target.files?.[0] ?? null)
+              }
+              ref={backupFileInputRef}
+              type="file"
+            />
+          </div>
+          <p className="mt-2 text-label-sm text-on-surface-variant">
+            IndexedDB 只在本机当前扩展 ID 下持久。删扩展 / 换机器前请先导出。
+          </p>
+          {backupStatus ? (
+            <p className="mt-1 text-label-sm text-primary">{backupStatus}</p>
+          ) : null}
+        </section>
+      ) : null}
 
       <main className="flex-1 overflow-y-auto px-margin-side pb-24 pt-stack-lg">
         {view === "search" ? (
@@ -445,7 +541,12 @@ const SidePanel = () => {
           </div>
         ) : null}
 
-        {view === "home" ? <ProbeDebugPanel analysis={relatedAnalysis} /> : null}
+        {view === "home" ? (
+          <ProbeDebugPanel
+            analysis={relatedAnalysis}
+            lexicalMs={relatedLexicalMs}
+          />
+        ) : null}
 
         {view === "home" && relatedAnalysis.results.length && selectedText.trim() ? (
           <p className="mb-2 text-label-sm text-on-surface-variant">

@@ -1064,3 +1064,35 @@ editable / mouseup 全路径吞掉异常。
 - 部分页面 `Element.animate` / `scrollIntoView` 会抛错。
 
 处理：菜单重建 await + try/catch；高亮与 Add 按钮动画包保护。
+
+### 2026-07-22：导出 / 导入 JSON 备份
+
+Dogfood：删除并重装 unpacked 扩展后，IndexedDB（按扩展 ID 隔离）整库消失。
+本地库本身会持久，但**不等于**跨重装 / 换机器持久。
+
+处理：
+
+- 新增 `db/echo-backup.ts`：完整导出（含 ignored）与按 id upsert 导入。
+- 右上角原禁用 Settings 齿轮改为备份入口：导出 JSON / 导入 JSON。
+- 提醒：删扩展前先导出。
+
+### 2026-07-22：备份校验
+
+- 导入前先验证每条记录的 `id` 与可恢复正文；坏记录不生成新 ID，保留有效
+  记录并在结果中计为「跳过」。
+
+### 2026-07-23：撤回 manifest 固定 key
+
+固定 key 会把已加载的 unpacked 开发扩展变为新扩展 ID，导致 Chrome 不再显示
+原 Echo 条目；它也无法阻止「卸载扩展即删除 IndexedDB」。因此撤回该配置，保留
+真正的保护措施：在删除扩展或切换 Chrome Profile 前导出 JSON，并在新安装后导入。
+
+### 2026-08-03：离线 Recall Benchmark + 本地 Trace
+
+面试证据补强（不改产品主线召回策略）：
+
+- `evals/recall-benchmark/`：55 条 fixture Echo × 40 标注 query；BM25（产品真身）/
+  本地 e5-small 向量 / Hybrid 同台对照。结论见
+  `evals/recall-benchmark/data/CONCLUSIONS.md`：**不上线 raw vector**。
+- Probe Debug Panel 增加本地 Recall Trace：复制 / 导出 JSON（`privacy: local-only`），
+  含接受数、拒绝原因分布与 lexical 耗时。默认不上传。
