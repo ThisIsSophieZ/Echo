@@ -64,13 +64,29 @@ Same labeled set (55 fixture Echoes, 40 annotated queries) compared:
 
 Full tables: [`evals/recall-benchmark/data/CONCLUSIONS.md`](../../evals/recall-benchmark/data/CONCLUSIONS.md)
 
-The fixture is constructed from dogfood-realistic product themes. It is useful for reproducible comparison, but it is not presented as private-user or production evidence. A desensitized real dogfood set is the next evaluation upgrade.
+The fixture is constructed from dogfood-realistic product themes. It is useful for reproducible comparison, but it is not presented as private-user or production evidence.
+
+A later frozen dogfood holdout used 91 unique Echoes and 21 model-assisted
+labeled queries. Raw vector improved R@3 from 34.9% to 46.4%, while a
+precision-first guarded hybrid produced 9/9 useful surfaces and correctly
+abstained on 5/5 abstention cases, at the cost of recovering only 9/16 expected
+surface queries. The report explicitly limits these claims to one user, a
+small sample, and Chinese/English technical-topic-heavy content.
+
+Runtime feasibility was evaluated separately in real browser WASM. The current
+model requires 139.5 MiB of assets and added about 418 MiB in two broader page
+memory measurements. Cached initialization was about 1.7 seconds, while warm
+query p50 was about 11 ms. Query speed is acceptable; payload and memory are
+not. Full results: [`experiments/browser-vector-feasibility/REPORT.md`](../../experiments/browser-vector-feasibility/REPORT.md).
 
 ## 6. Results / decision
 
 **Vector and hybrid are not shipped into the extension mainline.**
 
-Vector helps paraphrases but destroys quietness. Hybrid is quieter than raw vector yet still worse than BM25 on false surfaces in this fixture. Echo optimizes for low interruption; absolute cosine is not confidence when scores crowd.
+Vector helps paraphrases, but raw cosine cannot decide when to stay silent. A
+guarded hybrid is promising on the small holdout, yet the current browser model
+is disproportionate for a lightweight side panel. Echo therefore keeps BM25
+in product while quality and runtime evidence remain separate gates.
 
 That “no” is the deliverable: a measured abstain from shipping, not a missing feature.
 
@@ -94,14 +110,17 @@ Decision records, including evidence and revisit criteria, are indexed in [`docs
 
 ## 9. Next steps
 
-1. Replace fixture corpus with desensitized personal export when safe
-2. Re-run hybrid only if false-surface rate and abstention beat BM25
-3. Add only the minimum feedback outcomes: `useful`, `not_relevant`, and `wrong_time`
-4. Add a compact privacy and threat-model note
+1. Compare a materially smaller browser embedding candidate with the same runtime harness
+2. Collect a new independent holdout instead of tuning Report 5 again
+3. Prepare three demo stories: lexical success, semantic rescue, and correct silence
+4. Keep any future vector trial optional and outside the side-panel startup path
 
 ## 10. Verification snapshot
 
-On 2026-08-04, the extension passed **10 test files / 52 tests** and completed a production build. Historical development logs keep their original per-stage test counts rather than rewriting earlier snapshots.
+On 2026-08-11, the extension passed **10 test files / 55 tests**. The browser
+feasibility harness also completed fresh-cache and cached-reload runs on the
+public fixture. Historical development logs keep their original per-stage test
+counts rather than rewriting earlier snapshots.
 
 ## 11. How AI collaboration was used
 

@@ -59,6 +59,15 @@ used for BM25 statistics, passes the active source URL to the product
 exact-source gate, and removes current-selection self matches from vector
 candidates.
 
+## Browser feasibility gate
+
+Retrieval quality does not imply product feasibility. The independent
+[`browser-vector-feasibility`](../../experiments/browser-vector-feasibility/README.md)
+harness measures model assets, browser initialization, corpus encoding, warm
+queries, ranking, and memory without integrating vector code into the
+extension. Its reviewed [report](../../experiments/browser-vector-feasibility/REPORT.md)
+is the runtime gate for any future browser candidate.
+
 ## Swap in real dogfood data
 
 1. In the Echo side panel DevTools console, run `experiments/vector-recall-tidb/export-from-browser.js`

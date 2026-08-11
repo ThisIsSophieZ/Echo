@@ -2,6 +2,7 @@
 
 - **Status:** Accepted for the current product; experiment remains open
 - **Decision date:** 2026-08-03
+- **Last reviewed:** 2026-08-11
 
 ## Context
 
@@ -19,9 +20,33 @@ The offline harness compared product BM25, raw multilingual-e5-small cosine retr
 
 The reproducible method, limitations, and full output are in the [benchmark README](../../evals/recall-benchmark/README.md) and [conclusions](../../evals/recall-benchmark/data/CONCLUSIONS.md).
 
+A later private dogfood holdout (91 unique Echoes, 21 model-assisted labeled
+queries) confirmed the quality trade-off. Raw vector improved R@3 from 34.9%
+to 46.4%, but neither BM25 nor raw vector abstained correctly. A dev-tuned
+guarded hybrid correctly abstained on 5/5 holdout cases and made 9/9 useful
+surfaces, while recovering only 9/16 expected-surface queries. These are small,
+single-user denominators and support continued experimentation, not a general
+accuracy claim.
+
+Browser feasibility added a separate no-ship constraint:
+
+| Runtime signal | Observed on one Chrome/Windows machine |
+| --- | ---: |
+| Required model + tokenizer + JS + WASM | 139.5 MiB |
+| Cached pipeline initialization | about 1.7 s |
+| Warm query p50 / p95 | about 11 / 13-14 ms |
+| Encode 55 public fixture Echoes | about 1.3 s |
+| User-agent-specific page memory delta | about 418 MiB |
+
+The full method and limitations are in the [browser feasibility report](../../experiments/browser-vector-feasibility/REPORT.md).
+
 ## Decision
 
-Keep product BM25 with its precision gate. Keep vector and hybrid retrieval inside the offline evaluation harness. Do not add embeddings, a vector database, reranking, or model calls to the extension mainline based on this fixture.
+Keep product BM25 with its precision gate. Keep vector and hybrid retrieval
+inside offline evaluation. Do not bundle or eagerly initialize the current
+embedding model in the extension mainline. A future trial requires a materially
+smaller model or an explicitly optional, lazy-loaded architecture, plus a new
+independent quality holdout.
 
 ## Consequences
 
@@ -32,4 +57,8 @@ Keep product BM25 with its precision gate. Keep vector and hybrid retrieval insi
 
 ## Revisit Criteria
 
-Create a manually labeled, desensitized dogfood dataset. Reconsider a hybrid product experiment only if it beats BM25 on both false surfaces and abstention accuracy while improving useful recall. Report cold and warm latency separately and keep any first experiment behind an explicit product boundary.
+Reconsider a hybrid product experiment only when a candidate materially lowers
+asset and memory cost, preserves guarded precision on a newly collected
+holdout, and keeps model initialization outside the side-panel interaction
+path. Report first use, cached initialization, corpus encoding, warm query, and
+memory separately.
