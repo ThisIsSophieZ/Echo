@@ -38,6 +38,23 @@ npm run retrieval:holdout -- --confirm-holdout
 
 Do not use that command until the generation prompt and evaluators have been frozen for the first scored run.
 
+## Phase 2: Dev generation
+
+The Dev generator compares no supplied context against Candidate BM25 RAG. It
+uses a locally installed Ollama model, structured claim-level citations, and
+never sends fixture data to a remote provider.
+
+```powershell
+npm run generation:dev
+```
+
+Set `OLLAMA_MODEL` to override the default `qwen2.5:32b`. Generated question,
+evidence, answer, citation, token, and latency records are written to ignored
+`artifacts/generation-dev.md` and `.json` files.
+
+The reviewed Dev result and its limitations are recorded in
+[`GENERATION-DEV-RESULT.md`](./GENERATION-DEV-RESULT.md).
+
 ## Interpretation
 
 Retrieval and answer evaluation are separate:

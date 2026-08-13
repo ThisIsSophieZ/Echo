@@ -7,6 +7,7 @@
   "scripts": {
     "retrieval:dev": "tsx src/run-retrieval.ts --dataset=dev --strategy=product-gate",
     "retrieval:candidate:dev": "tsx src/run-retrieval.ts --dataset=dev --strategy=candidate-bm25",
+    "generation:dev": "tsx src/run-generation.ts",
     "retrieval:holdout": "tsx src/run-retrieval.ts --dataset=holdout",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test src/*.test.ts"

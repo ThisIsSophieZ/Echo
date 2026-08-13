@@ -62,3 +62,33 @@ export type RetrievalRow = {
   score: RetrievalScore
 }
 
+export type GeneratedClaim = {
+  text: string
+  citations: string[]
+}
+
+export type GeneratedAnswer = {
+  status: "answered" | "abstained"
+  answer: string
+  claims: GeneratedClaim[]
+  reason: string
+}
+
+export type GenerationUsage = {
+  promptTokens: number
+  outputTokens: number
+  totalDurationMs: number
+  loadDurationMs: number
+  promptEvalDurationMs: number
+  generationDurationMs: number
+  estimatedApiCostUsd: number
+}
+
+export type GenerationScore = {
+  behaviorCorrect: boolean
+  citedIds: string[]
+  invalidCitationIds: string[]
+  uncitedClaims: number
+  requiredEvidenceCitationCoverage: number | null
+  allRequiredEvidenceCited: boolean | null
+}
