@@ -1,0 +1,122 @@
+{
+  "datasetVersion": "echo-rag-dev-v1",
+  "datasetRole": "development",
+  "corpus": "../../../evals/recall-benchmark/data/corpus.json",
+  "privacy": "Committed public fixture only. No private Echo or IndexedDB data.",
+  "scoringBoundary": "Used to develop prompts, output parsing, and evaluators. Do not report these questions as final accuracy.",
+  "questions": [
+    {
+      "id": "D01",
+      "question": "Why did Echo move away from the standalone Collect app?",
+      "expectedBehavior": "answer",
+      "requiredEvidence": ["e08", "e19", "e20"],
+      "supportingEvidence": [],
+      "hardNegatives": ["e49"],
+      "acceptableClaims": [
+        "Capture friction weakens the habit.",
+        "Users would not reliably open a separate app to manage chat snippets.",
+        "Capture and resurfacing were moved into the browser side panel and existing workflow."
+      ],
+      "forbiddenClaims": [
+        "Collect failed because it was technically impossible to build.",
+        "A formal user study or A/B test proved that the side panel was better."
+      ],
+      "testTypes": ["multi_evidence", "product_reasoning", "cross_language"],
+      "whyThisTestMatters": "Checks whether the system can combine several product observations without inventing stronger research evidence."
+    },
+    {
+      "id": "D02",
+      "question": "为什么 Echo 宁可漏掉一些结果，也不愿展示大量弱匹配？",
+      "expectedBehavior": "answer",
+      "requiredEvidence": ["e21", "e23"],
+      "supportingEvidence": ["e33"],
+      "hardNegatives": [],
+      "acceptableClaims": [
+        "Weak matches consume attention and reduce trust.",
+        "A single matching term is not enough to surface an Echo.",
+        "Precision-first retrieval accepts missing some relevant results to reduce interruption."
+      ],
+      "forbiddenClaims": [
+        "BM25 is always better than vector retrieval.",
+        "The current gate never misses relevant Echoes."
+      ],
+      "testTypes": ["multi_evidence", "product_tradeoff", "chinese_question"],
+      "whyThisTestMatters": "Checks whether the answer explains a product trade-off instead of presenting a retrieval rule as universally superior."
+    },
+    {
+      "id": "D03",
+      "question": "How does Echo protect pending writes when the MV3 service worker sleeps?",
+      "expectedBehavior": "answer",
+      "requiredEvidence": ["e25"],
+      "supportingEvidence": [],
+      "hardNegatives": [],
+      "acceptableClaims": [
+        "Echo queues a pending thought in chrome.storage.local before committing it to Dexie.",
+        "The queue provides a recovery path when the MV3 service worker sleeps during the write flow."
+      ],
+      "forbiddenClaims": [
+        "Echo uses a cloud message queue.",
+        "The mechanism guarantees zero data loss under every possible failure."
+      ],
+      "testTypes": ["single_evidence", "engineering_fact"],
+      "whyThisTestMatters": "Provides a simple factual case that should succeed before testing more complex evidence synthesis."
+    },
+    {
+      "id": "D04",
+      "question": "为什么 Echo 当前没有为了面试搭建云端多租户后端？",
+      "expectedBehavior": "answer",
+      "requiredEvidence": ["e27", "e36"],
+      "supportingEvidence": [],
+      "hardNegatives": [],
+      "acceptableClaims": [
+        "Echo is currently a local-first personal product.",
+        "Conversation data is not uploaded by default.",
+        "A cloud multi-tenant backend does not solve a validated need in the current workflow.",
+        "Adding resume-only infrastructure would weaken the product story."
+      ],
+      "forbiddenClaims": [
+        "Echo will never use any backend.",
+        "IndexedDB provides cross-device synchronization."
+      ],
+      "testTypes": ["multi_evidence", "privacy_boundary", "architecture_tradeoff"],
+      "whyThisTestMatters": "Checks whether the system can explain an intentional architecture boundary and its limitations."
+    },
+    {
+      "id": "D05",
+      "question": "How many paying users does Echo currently have?",
+      "expectedBehavior": "abstain",
+      "requiredEvidence": [],
+      "supportingEvidence": [],
+      "hardNegatives": [],
+      "acceptableClaims": [
+        "The available evidence does not contain paying-user data."
+      ],
+      "forbiddenClaims": [
+        "Echo has zero paying users.",
+        "Echo has a specific number of paying users.",
+        "Echo has a specific revenue amount."
+      ],
+      "testTypes": ["abstention", "unsupported_business_claim"],
+      "whyThisTestMatters": "Checks whether the system refuses to invent business traction that is absent from the corpus."
+    },
+    {
+      "id": "D06",
+      "question": "用户搜索 Apple 公司财报时，为什么不能只根据“苹果”这个词召回记录？",
+      "expectedBehavior": "answer",
+      "requiredEvidence": ["e54"],
+      "supportingEvidence": [],
+      "hardNegatives": ["e55"],
+      "acceptableClaims": [
+        "The word apple can refer to a company or a fruit and food context.",
+        "Retrieval needs surrounding terms such as company filings or pie recipes to determine the intended meaning.",
+        "An apple-pie note should not be surfaced only because it shares the word apple."
+      ],
+      "forbiddenClaims": [
+        "The apple-pie Echo should be deleted.",
+        "The current system perfectly resolves every ambiguous word."
+      ],
+      "testTypes": ["hard_negative", "disambiguation", "chinese_question"],
+      "whyThisTestMatters": "Checks whether the system can exclude a result that looks similar by keyword but means something different."
+    }
+  ]
+}
