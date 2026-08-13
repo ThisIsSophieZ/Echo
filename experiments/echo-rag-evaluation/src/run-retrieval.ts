@@ -2,13 +2,11 @@ import fs from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
-import { analyzeRelatedEchoes } from "../../../extension/lib/echo-related"
-
 import { aggregateRetrieval, scoreRetrieval } from "./score"
+import { retrieve, type RetrievalStrategy } from "./retrievers"
 import type {
   CorpusFile,
   QuestionSet,
-  RetrievalHit,
   RetrievalRow
 } from "./types"
 
@@ -25,6 +23,11 @@ const datasetArg = process.argv.find((value) => value.startsWith("--dataset="))
 const dataset = datasetArg?.slice("--dataset=".length) === "holdout"
   ? "holdout"
   : "dev"
+const strategyArg = process.argv.find((value) => value.startsWith("--strategy="))
+const strategy: RetrievalStrategy =
+  strategyArg?.slice("--strategy=".length) === "candidate-bm25"
+    ? "candidate-bm25"
+    : "product-gate"
 
 if (dataset === "holdout" && !process.argv.includes("--confirm-holdout")) {
   throw new Error(
@@ -44,22 +47,12 @@ const main = () => {
   const questionSet = readJson<QuestionSet>(questionsPath)
 
   // Keep timing comparable by warming the same product lexical path once.
-  analyzeRelatedEchoes(corpus.echoes as any, "warmup lexical retrieval", 3)
+  retrieve(strategy, corpus.echoes, "warmup lexical retrieval")
 
   const rows: RetrievalRow[] = questionSet.questions.map((question) => {
     const started = performance.now()
-    const analysis = analyzeRelatedEchoes(
-      corpus.echoes as any,
-      question.question,
-      3
-    )
+    const hits = retrieve(strategy, corpus.echoes, question.question)
     const latencyMs = performance.now() - started
-    const hits: RetrievalHit[] = analysis.results.map((result: any) => ({
-      id: result.echo.id,
-      title: result.echo.title,
-      score: result.score,
-      reason: result.reason
-    }))
 
     return {
       question,
@@ -72,13 +65,15 @@ const main = () => {
   const aggregate = aggregateRetrieval(rows)
   fs.mkdirSync(artifactsDir, { recursive: true })
 
-  const jsonPath = path.join(artifactsDir, `retrieval-${dataset}.json`)
+  const artifactStem = `retrieval-${strategy}-${dataset}`
+  const jsonPath = path.join(artifactsDir, `${artifactStem}.json`)
   fs.writeFileSync(
     jsonPath,
     JSON.stringify(
       {
         generatedAt: new Date().toISOString(),
         phase: "retrieval-only",
+        strategy,
         dataset,
         datasetVersion: questionSet.datasetVersion,
         corpusVersion: corpus.fixtureVersion,
@@ -96,6 +91,7 @@ const main = () => {
     "# Echo RAG Lab - Retrieval-only Report",
     "",
     `- Dataset: \`${dataset}\` / \`${questionSet.datasetVersion}\``,
+    `- Strategy: \`${strategy}\``,
     `- Public corpus: \`${corpus.fixtureVersion}\` / ${corpus.echoes.length} Echoes`,
     `- Questions: ${aggregate.questions} (${aggregate.answerQuestions} answer, ${aggregate.abstentionQuestions} abstain)`,
     "- Generator: not used",
@@ -145,7 +141,7 @@ const main = () => {
     lines.push("")
   }
 
-  const markdownPath = path.join(artifactsDir, `retrieval-${dataset}.md`)
+  const markdownPath = path.join(artifactsDir, `${artifactStem}.md`)
   fs.writeFileSync(markdownPath, lines.join("\n"), "utf8")
 
   console.log(`[rag-retrieval] report: ${markdownPath}`)

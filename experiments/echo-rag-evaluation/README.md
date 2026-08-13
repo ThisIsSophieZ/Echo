@@ -15,14 +15,18 @@ Independent interview experiment for retrieval and future grounded-generation ev
 cd experiments/echo-rag-evaluation
 npm install
 npm run retrieval:dev
+npm run retrieval:candidate:dev
 ```
 
 Outputs are written to the ignored `artifacts/` directory:
 
-- `retrieval-dev.json`
-- `retrieval-dev.md`
+- `retrieval-product-gate-dev.json` / `.md`
+- `retrieval-candidate-bm25-dev.json` / `.md`
 
-The runner reuses the production `analyzeRelatedEchoes` BM25 path and reports required-evidence coverage, hard-negative exposure, and warm local latency.
+Both strategies reuse the production `analyzeRelatedEchoes` BM25 path. The
+product baseline keeps only results allowed to surface in Echo; the candidate
+strategy keeps up to five lexical candidates for later evidence-sufficiency
+checking. Neither strategy changes extension code.
 
 ## Holdout lock
 
@@ -41,4 +45,3 @@ Retrieval and answer evaluation are separate:
 - Missing required evidence is a retrieval failure.
 - Retrieving a related hard negative does not give the generator permission to answer.
 - An abstention question may still retrieve adjacent material; the future generation stage must judge whether that material is sufficient.
-
