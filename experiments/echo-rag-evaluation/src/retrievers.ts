@@ -54,4 +54,3 @@ export const retrieve = (
 
   return selectCandidateDiagnostics(analysis.candidates).map(hitFromCandidate)
 }
-

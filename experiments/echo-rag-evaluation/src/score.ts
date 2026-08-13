@@ -25,7 +25,6 @@ export const scoreRetrieval = (
     retrievalAbstained: hits.length === 0
   }
 }
-
 const percentile = (values: number[], ratio: number) => {
   if (!values.length) return 0
   const sorted = [...values].sort((left, right) => left - right)

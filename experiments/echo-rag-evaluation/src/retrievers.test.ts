@@ -46,4 +46,3 @@ test("limits the broader candidate set", () => {
 
   assert.equal(selected.length, 5)
 })
-

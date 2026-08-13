@@ -41,7 +41,6 @@ test("separates partial coverage from hard-negative exposure", () => {
   assert.deepEqual(score.missingRequiredEvidence, ["e2"])
   assert.deepEqual(score.hardNegativeHits, ["e9"])
 })
-
 test("does not invent required-evidence metrics for abstention questions", () => {
   const score = scoreRetrieval(
     question({ expectedBehavior: "abstain", requiredEvidence: [] }),
