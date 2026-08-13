@@ -64,6 +64,10 @@ evidence, answer, citation, token, and latency records are written to ignored
 The reviewed Dev result and its limitations are recorded in
 [`GENERATION-DEV-RESULT.md`](./GENERATION-DEV-RESULT.md).
 
+The single frozen Holdout run is recorded in
+[`HOLDOUT-RESULT.md`](./HOLDOUT-RESULT.md). The v1 Holdout is now spent and must
+not be reused for tuning.
+
 ## Interpretation
 
 Retrieval and answer evaluation are separate:
