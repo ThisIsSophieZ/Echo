@@ -38,6 +38,15 @@ npm run retrieval:holdout -- --confirm-holdout
 
 Do not use that command until the generation prompt and evaluators have been frozen for the first scored run.
 
+The generation Holdout adds a second lock: it verifies SHA-256 hashes in
+`freeze-manifest.json` for the prompt, scorer, retriever, corpus, and Holdout
+questions. It also rejects a model override. After the frozen commit exists,
+run it once with:
+
+```powershell
+npm run generation:holdout -- --confirm-holdout
+```
+
 ## Phase 2: Dev generation
 
 The Dev generator compares no supplied context against Candidate BM25 RAG. It

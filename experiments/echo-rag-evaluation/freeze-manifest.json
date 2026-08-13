@@ -1,0 +1,18 @@
+{
+  "frozenAt": "2026-08-13",
+  "purpose": "First and only scored RAG generation Holdout run for v1",
+  "model": "qwen2.5:32b",
+  "generationSettings": {
+    "temperature": 0,
+    "seed": 42,
+    "candidateStrategy": "candidate-bm25",
+    "candidateLimit": 5
+  },
+  "files": {
+    "experiments/echo-rag-evaluation/src/generation.ts": "e1a7aa13fd373471cf7a98abd50c55ad01b64012e7098c1f882d41b6c0ddc76a",
+    "experiments/echo-rag-evaluation/src/generation-score.ts": "312c73457129fd7a5c5220d65003431a9f99636cf12c99ae3fc9b33f616752db",
+    "experiments/echo-rag-evaluation/src/retrievers.ts": "4e8607069140b14a97ef3eb6143d51f7b9a07e3b7d1c2ac9deb07fc46626d76f",
+    "experiments/echo-rag-evaluation/data/questions-holdout.json": "66921bc3ff53d13aca88115c9f838c1a080761902b14bcb8e5d45601bbaf3e52",
+    "evals/recall-benchmark/data/corpus.json": "7c92242bff4c5b0103e122501466ba03cb519e5055ac9218b3b0d2c4e7ab0ddb"
+  }
+}

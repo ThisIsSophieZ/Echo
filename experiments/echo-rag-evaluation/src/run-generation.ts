@@ -1,5 +1,6 @@
 import fs from "node:fs"
 import path from "node:path"
+import crypto from "node:crypto"
 import { fileURLToPath } from "node:url"
 
 import { generateAnswer, type GenerationStrategy } from "./generation"
@@ -29,6 +30,11 @@ const here = path.dirname(fileURLToPath(import.meta.url))
 const root = path.resolve(here, "..")
 const repoRoot = path.resolve(root, "../..")
 const artifactsDir = path.join(root, "artifacts")
+
+const datasetArg = process.argv.find((value) => value.startsWith("--dataset="))
+const dataset = datasetArg?.slice("--dataset=".length) === "holdout"
+  ? "holdout"
+  : "dev"
 const model = process.env.OLLAMA_MODEL || "qwen2.5:32b"
 
 const strategyArg = process.argv.find((value) => value.startsWith("--strategy="))
@@ -40,8 +46,15 @@ const strategies: GenerationStrategy[] = strategyArg
     ]
   : ["no-context", "candidate-bm25-rag"]
 
-if (process.argv.some((value) => value.includes("holdout"))) {
-  throw new Error("This Dev generation runner cannot run Holdout.")
+if (dataset === "holdout" && !process.argv.includes("--confirm-holdout")) {
+  throw new Error(
+    "Holdout is locked. Run only after freezing the pipeline, with --confirm-holdout."
+  )
+}
+
+type FreezeManifest = {
+  model: string
+  files: Record<string, string>
 }
 
 const readJson = <T>(filePath: string): T =>
@@ -50,12 +63,31 @@ const readJson = <T>(filePath: string): T =>
 const pct = (value: number | null) =>
   value == null ? "n/a" : `${(value * 100).toFixed(1)}%`
 
+const sha256 = (filePath: string) =>
+  crypto.createHash("sha256").update(fs.readFileSync(filePath)).digest("hex")
+
+const verifyFreeze = () => {
+  const manifest = readJson<FreezeManifest>(path.join(root, "freeze-manifest.json"))
+  if (model !== manifest.model) {
+    throw new Error(`Holdout model is frozen to ${manifest.model}; received ${model}.`)
+  }
+
+  for (const [relativePath, expectedHash] of Object.entries(manifest.files)) {
+    const actualHash = sha256(path.join(repoRoot, relativePath))
+    if (actualHash !== expectedHash) {
+      throw new Error(`Frozen file changed: ${relativePath}`)
+    }
+  }
+}
+
 const main = async () => {
+  if (dataset === "holdout") verifyFreeze()
+
   const corpus = readJson<CorpusFile>(
     path.join(repoRoot, "evals/recall-benchmark/data/corpus.json")
   )
   const questions = readJson<QuestionSet>(
-    path.join(root, "data/questions-dev.json")
+    path.join(root, `data/questions-${dataset}.json`)
   )
   const corpusById = new Map(corpus.echoes.map((echo) => [echo.id, echo]))
   const rows: GenerationRow[] = []
@@ -146,7 +178,8 @@ const main = async () => {
   })
 
   fs.mkdirSync(artifactsDir, { recursive: true })
-  const jsonPath = path.join(artifactsDir, "generation-dev.json")
+  const artifactStem = `generation-${dataset}`
+  const jsonPath = path.join(artifactsDir, `${artifactStem}.json`)
   fs.writeFileSync(
     jsonPath,
     JSON.stringify(
@@ -168,12 +201,12 @@ const main = async () => {
   )
 
   const lines = [
-    "# Echo RAG Lab - Dev Generation Record",
+    `# Echo RAG Lab - ${dataset === "holdout" ? "Holdout" : "Dev"} Generation Record`,
     "",
     `- Model: \`${model}\` via local Ollama`,
     `- Dataset: \`${questions.datasetVersion}\``,
     `- Public corpus: \`${corpus.fixtureVersion}\` / ${corpus.echoes.length} Echoes`,
-    "- Holdout: not run",
+    `- Holdout: ${dataset === "holdout" ? "single confirmed run" : "not run"}`,
     "- Cost: local API cost $0; hardware and electricity excluded",
     "",
     "## Aggregate",
@@ -224,7 +257,7 @@ const main = async () => {
     lines.push(`**Reason:** ${row.answer.reason}`, "")
   }
 
-  const markdownPath = path.join(artifactsDir, "generation-dev.md")
+  const markdownPath = path.join(artifactsDir, `${artifactStem}.md`)
   fs.writeFileSync(markdownPath, lines.join("\n"), "utf8")
   console.log(`[rag-generation] report: ${markdownPath}`)
   console.log(`[rag-generation] records: ${jsonPath}`)
