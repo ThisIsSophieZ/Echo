@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "types": ["node"],
+    "baseUrl": "../../extension",
+    "paths": {
+      "~/*": ["./*"],
+      "~capture/*": ["capture/*"],
+      "~db/*": ["db/*"],
+      "~lib/*": ["lib/*"]
+    },
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true
+  },
+  "include": ["src/**/*.ts"]
+}
