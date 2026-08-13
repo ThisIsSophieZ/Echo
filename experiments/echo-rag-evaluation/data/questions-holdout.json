@@ -1,0 +1,267 @@
+{
+  "datasetVersion": "echo-rag-holdout-v1",
+  "datasetRole": "holdout",
+  "frozenAt": "2026-08-13",
+  "corpus": "../../../evals/recall-benchmark/data/corpus.json",
+  "privacy": "Committed public fixture only. No private Echo or IndexedDB data.",
+  "scoringBoundary": "Frozen before runner implementation. After the first scored run, analyze failures but do not change this dataset, prompts, or scoring rules for the same reported result.",
+  "sampleSizeWarning": "Fourteen questions are directional evidence only. One question changes a question-level rate by about 7.1 percentage points.",
+  "questions": [
+    {
+      "id": "H01",
+      "question": "Why can’t Echo treat a high cosine similarity score as confidence?",
+      "expectedBehavior": "answer",
+      "requiredEvidence": ["e29"],
+      "supportingEvidence": [],
+      "hardNegatives": [],
+      "acceptableClaims": [
+        "Top-k cosine scores can be tightly clustered.",
+        "An absolute similarity score does not by itself show that a result is clearly better or relevant."
+      ],
+      "forbiddenClaims": [
+        "Cosine similarity has no useful role in retrieval.",
+        "A cosine score of 0.9 means the answer is 90 percent correct.",
+        "Vector retrieval is worse than BM25 on every metric."
+      ],
+      "testTypes": ["single_evidence", "retrieval_reasoning", "cross_language"],
+      "whyThisTestMatters": "Checks whether the answer preserves the difference between similarity and calibrated confidence."
+    },
+    {
+      "id": "H02",
+      "question": "Hybrid retrieval 在 Echo 中应该如何使用，而不是怎样使用？",
+      "expectedBehavior": "answer",
+      "requiredEvidence": ["e30"],
+      "supportingEvidence": [],
+      "hardNegatives": [],
+      "acceptableClaims": [
+        "Hybrid retrieval should combine lexical and semantic candidates.",
+        "Combined candidates should still pass a precision-first rerank or gate.",
+        "Hybrid should not discard BM25 wholesale."
+      ],
+      "forbiddenClaims": [
+        "Hybrid retrieval is already shipped in Echo.",
+        "Hybrid retrieval is guaranteed to be more accurate than every alternative."
+      ],
+      "testTypes": ["single_evidence", "architecture_boundary", "chinese_question"],
+      "whyThisTestMatters": "Checks whether an experimental architecture is explained without being mistaken for shipped product behavior."
+    },
+    {
+      "id": "H03",
+      "question": "扩展重新加载后，为什么已经打开的 LLM 页面可能需要刷新？",
+      "expectedBehavior": "answer",
+      "requiredEvidence": ["e39"],
+      "supportingEvidence": [],
+      "hardNegatives": [],
+      "acceptableClaims": [
+        "Content scripts in already-open tabs can become stale after an extension reload.",
+        "Refreshing the LLM page allows the current content script to be loaded again."
+      ],
+      "forbiddenClaims": [
+        "The reload necessarily deletes the user's Echo data.",
+        "The user must reinstall the extension."
+      ],
+      "testTypes": ["single_evidence", "engineering_fact", "chinese_question"],
+      "whyThisTestMatters": "Checks retrieval of a concrete browser-runtime recovery fact."
+    },
+    {
+      "id": "H04",
+      "question": "How should Echo recover data after an unpacked extension path changes its extension ID?",
+      "expectedBehavior": "answer",
+      "requiredEvidence": ["e34", "e35"],
+      "supportingEvidence": [],
+      "hardNegatives": [],
+      "acceptableClaims": [
+        "Changing the unpacked extension path can change the extension ID and make the old IndexedDB appear unavailable.",
+        "Keeping a stable path or junction avoids changing the ID.",
+        "A JSON backup can restore records through an ID-based upsert."
+      ],
+      "forbiddenClaims": [
+        "IndexedDB automatically migrates between extension IDs.",
+        "The old data has necessarily been permanently deleted."
+      ],
+      "testTypes": ["multi_evidence", "failure_recovery"],
+      "whyThisTestMatters": "Checks whether the system can combine a failure cause with a supported recovery path."
+    },
+    {
+      "id": "H05",
+      "question": "为什么 wrong_time 不能直接标成 not_relevant？",
+      "expectedBehavior": "answer",
+      "requiredEvidence": ["e28"],
+      "supportingEvidence": [],
+      "hardNegatives": [],
+      "acceptableClaims": [
+        "An Echo can remain relevant even when the current moment is wrong.",
+        "Timing feedback should be kept separate from content relevance feedback."
+      ],
+      "forbiddenClaims": [
+        "wrong_time means that the content is incorrect.",
+        "A wrong-time Echo should be deleted."
+      ],
+      "testTypes": ["single_evidence", "feedback_semantics", "chinese_question"],
+      "whyThisTestMatters": "Checks whether the answer preserves a product feedback distinction instead of collapsing both signals."
+    },
+    {
+      "id": "H06",
+      "question": "How does Anchor v2 locate content in dynamic or virtualized LLM pages?",
+      "expectedBehavior": "answer",
+      "requiredEvidence": ["e24"],
+      "supportingEvidence": [],
+      "hardNegatives": [],
+      "acceptableClaims": [
+        "Anchor v2 uses provider-native IDs when available.",
+        "It uses SHA-256 fingerprints and neighboring-message context for disambiguation.",
+        "It has explicit fallback behavior when stronger anchors fail."
+      ],
+      "forbiddenClaims": [
+        "Anchor v2 guarantees a successful jump under every DOM change.",
+        "Anchor v2 relies only on fuzzy text matching."
+      ],
+      "testTypes": ["single_evidence", "engineering_explanation"],
+      "whyThisTestMatters": "Checks a technical explanation that includes both the primary path and failure boundary."
+    },
+    {
+      "id": "H07",
+      "question": "What evidence should exist before changing the embedding model or adding a reranker?",
+      "expectedBehavior": "answer",
+      "requiredEvidence": ["e31", "e51"],
+      "supportingEvidence": [],
+      "hardNegatives": [],
+      "acceptableClaims": [
+        "A labeled or golden evaluation set should exist before changing models.",
+        "Hybrid candidate generation should show value before investing in a cross-encoder reranker."
+      ],
+      "forbiddenClaims": [
+        "The current corpus proves that a specific embedding model has won.",
+        "The current corpus proves a reranker will improve accuracy by a specific amount."
+      ],
+      "testTypes": ["multi_evidence", "evaluation_reasoning", "cross_language"],
+      "whyThisTestMatters": "Checks whether the answer recommends evidence before additional model complexity."
+    },
+    {
+      "id": "H08",
+      "question": "How should Echo prevent a superseded idea from resurfacing as current guidance?",
+      "expectedBehavior": "answer",
+      "requiredEvidence": ["e41"],
+      "supportingEvidence": [],
+      "hardNegatives": ["e49", "e50"],
+      "acceptableClaims": [
+        "Superseded ideas need an explicit status so they are not presented as current conclusions.",
+        "Historical records can be preserved without treating them as active guidance."
+      ],
+      "forbiddenClaims": [
+        "Every superseded idea must be permanently deleted.",
+        "Echo already resolves every conflict between old and new ideas automatically."
+      ],
+      "testTypes": ["single_evidence", "temporal_governance", "hard_negative", "cross_language"],
+      "whyThisTestMatters": "Checks whether the system can distinguish preserved history from currently valid guidance."
+    },
+    {
+      "id": "H09",
+      "question": "How could an AI product reduce repeated model cost without sending every request to an expensive model?",
+      "expectedBehavior": "answer",
+      "requiredEvidence": ["e01", "e02"],
+      "supportingEvidence": ["e53"],
+      "hardNegatives": [],
+      "acceptableClaims": [
+        "Route easy requests to a cheaper model and escalate uncertain cases.",
+        "Cache repeated prompts to avoid paying for the same answer repeatedly."
+      ],
+      "forbiddenClaims": [
+        "Echo currently uses this model-routing architecture in production.",
+        "The corpus contains a measured amount of money saved by this approach."
+      ],
+      "testTypes": ["multi_evidence", "cost_reasoning"],
+      "whyThisTestMatters": "Checks whether separate cost-control ideas can be combined without turning them into an unsupported production claim."
+    },
+    {
+      "id": "H10",
+      "question": "为什么本地优先产品不一定需要云端 APM 才能证明可观测性？",
+      "expectedBehavior": "answer",
+      "requiredEvidence": ["e52"],
+      "supportingEvidence": ["e22"],
+      "hardNegatives": [],
+      "acceptableClaims": [
+        "A local-first product can expose an exportable local trace.",
+        "The trace can explain acceptance, rejection, and retrieval stages without uploading private data by default."
+      ],
+      "forbiddenClaims": [
+        "A local trace is equivalent to monitoring a large production service.",
+        "Cloud observability is never useful."
+      ],
+      "testTypes": ["single_evidence", "observability_boundary", "chinese_question"],
+      "whyThisTestMatters": "Checks whether the answer explains an observability choice without overstating what it proves."
+    },
+    {
+      "id": "H11",
+      "question": "What embedding model is currently shipped inside the Echo extension?",
+      "expectedBehavior": "abstain",
+      "requiredEvidence": [],
+      "supportingEvidence": [],
+      "hardNegatives": ["e04", "e11", "e17", "e29", "e30", "e31"],
+      "acceptableClaims": [
+        "The available evidence does not establish that an embedding model is shipped in the extension."
+      ],
+      "forbiddenClaims": [
+        "multilingual-e5-small is shipped in Echo.",
+        "TiDB vector retrieval is used by the production extension.",
+        "Any specific embedding model is currently shipped."
+      ],
+      "testTypes": ["abstention", "hard_negative", "product_boundary"],
+      "whyThisTestMatters": "Checks whether discussion of an experiment is incorrectly converted into a shipped-product claim."
+    },
+    {
+      "id": "H12",
+      "question": "What was Echo’s production p95 latency across thousands of users?",
+      "expectedBehavior": "abstain",
+      "requiredEvidence": [],
+      "supportingEvidence": [],
+      "hardNegatives": ["e43"],
+      "acceptableClaims": [
+        "The available evidence does not contain a production p95 across thousands of users."
+      ],
+      "forbiddenClaims": [
+        "Any specific production p95 latency.",
+        "Any claim that Echo has thousands of users.",
+        "Any production SLA."
+      ],
+      "testTypes": ["abstention", "unsupported_metric", "hard_negative"],
+      "whyThisTestMatters": "Checks whether a general note about latency measurement is mistaken for unavailable production evidence."
+    },
+    {
+      "id": "H13",
+      "question": "What temperature should I use to roast the coffee beans mentioned in Echo?",
+      "expectedBehavior": "abstain",
+      "requiredEvidence": [],
+      "supportingEvidence": [],
+      "hardNegatives": ["e47"],
+      "acceptableClaims": [
+        "The available evidence mentions coffee roasting but does not provide a roasting temperature."
+      ],
+      "forbiddenClaims": [
+        "Any specific roasting temperature.",
+        "Any specific roasting curve."
+      ],
+      "testTypes": ["abstention", "hard_negative", "insufficient_evidence"],
+      "whyThisTestMatters": "Checks whether topic relevance is incorrectly treated as sufficient evidence for a specific answer."
+    },
+    {
+      "id": "H14",
+      "question": "如果 Echo 找回了一份很长的实用工具清单，系统能否把它当成已经决定要做的产品路线图？",
+      "expectedBehavior": "answer",
+      "requiredEvidence": ["e45"],
+      "supportingEvidence": ["e46"],
+      "hardNegatives": [],
+      "acceptableClaims": [
+        "A long list of practical tips is not automatically a commitment to build each item.",
+        "A fast implementation does not by itself prove that the underlying product problem has been solved."
+      ],
+      "forbiddenClaims": [
+        "Every item in the list should be added to the product roadmap.",
+        "The list has no possible reference value.",
+        "Fast implementation is sufficient evidence that the feature should ship."
+      ],
+      "testTypes": ["multi_evidence", "evidence_interpretation", "product_reasoning", "chinese_question"],
+      "whyThisTestMatters": "Checks whether retrieved notes are interpreted according to what they claim rather than promoted into product commitments."
+    }
+  ]
+}
