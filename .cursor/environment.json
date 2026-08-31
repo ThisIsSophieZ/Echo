@@ -1,0 +1,5 @@
+{
+  "name": "Echo AI Product Engineering",
+  "user": "ubuntu",
+  "install": "bash .cursor/install.sh"
+}
