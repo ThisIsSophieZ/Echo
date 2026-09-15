@@ -32,8 +32,6 @@ This repository documents the product decisions, retrieval experiments, browser-
 
 ## Evidence-backed decisions
 
-## Evidence-backed decisions
-
 - **Prefer precision over recall.** Across 16 dogfood Probe reports, the retrieval pipeline accepted 256 of 1,493 scanned candidates. Manual review showed that many accepted candidates lacked strong phrase-level evidence, so the product gate was tightened rather than adding more model complexity.
 - **Keep semantic retrieval experimental.** On a constructed 55-Echo / 40-query benchmark, raw vector retrieval improved recall but produced 17.5 false surfaces — irrelevant recalls shown to the user — per 100 queries, compared with 5.0 for the product BM25 configuration.
 - **Stay local-first.** Saved Echo content remains in IndexedDB. Reports and backups leave the browser only through explicit user export.
