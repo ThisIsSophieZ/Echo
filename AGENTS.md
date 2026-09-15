@@ -8,7 +8,7 @@
 2. 告一段落：`git add` 明确文件 → `commit` → `push`。
 3. **换工具前先 push**；回到另一工具前先 `pull`。
 4. 同一时段默认 **只有一个 Agent 写代码**；另一个只读或只改文档。
-5. 不要各维护一份互不同步的目录副本；统一用本仓库（`echo-ai-product-engineering`）。
+5. 不要各维护一份互不同步的目录副本；统一用本仓库（GitHub: `ThisIsSophieZ/Echo`）。
 
 ## 2. 分工建议
 

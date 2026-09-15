@@ -13,3 +13,7 @@ coverage/
 *.tsbuildinfo
 .idea/
 .vscode/
+
+# Personal interview notes — keep local, never publish
+docs/interview/职业市场研究与岗位策略-2026-08.md
+docs/interview/Echo-architecture-interview-guide-bilingual.md

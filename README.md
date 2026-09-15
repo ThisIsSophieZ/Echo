@@ -36,7 +36,7 @@ The full rationale and revisit criteria live in the [Decision Logs](docs/decisio
 ## Repository map
 
 ```text
-echo-ai-product-engineering/
+Echo/
 |-- extension/                      # Chrome MV3 product: Plasmo, React, Dexie
 |-- evals/recall-benchmark/         # Offline labeled recall evaluation
 |-- experiments/vector-recall-tidb/ # Earlier isolated vector experiment
