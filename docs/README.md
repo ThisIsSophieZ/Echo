@@ -1,8 +1,6 @@
 ﻿# Docs index
 
-这些文档是 Echo / Solo Founder OS 的产品脑暴、规格与面试证据。**先看这里，再看代码。**
-
-多工具协作（Cursor / Codex）先看仓库根目录 [`../AGENTS.md`](../AGENTS.md)。
+这些文档是 Echo 的产品规格、决策记录与面试证据。先看这里，再看代码。运行方式见 [`../CONTRIBUTING.md`](../CONTRIBUTING.md)。
 
 ## 产品与设计（来自原仓库 docs/）
 

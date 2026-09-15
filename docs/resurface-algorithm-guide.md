@@ -1,9 +1,9 @@
 # Echo 浮现算法全流程指南
 
-**用途**：给 Gemini / 自己复习用。涵盖产品原则、当前代码实现、打分逻辑、以及如何一步步让浮现更精准。
+**用途**：产品原则、当时的打分逻辑，以及如何把浮现做准。这是 2026-06 的设计笔记，不是当前扩展主线的实现说明。
 
 **最后更新**：2026-06-25  
-**代码位置**：`products/echo/extension/lib/resurface.ts`（唯一旋钮：`scoreEcho()`）
+**当时的代码位置**：`extension/lib/`（当前产品主线是 BM25 + precision-first gate，见 `extension/lib/echo-related.ts`）
 
 ---
 
@@ -369,84 +369,19 @@ finalScore =
 
 ---
 
-## 10. 你怎么改代码（给 Gemini 的上下文）
-
-### 唯一入口
-
-```ts
-// products/echo/extension/lib/resurface.ts
-
-export const scoreEcho = (
-  echo: Echo,
-  ctx: ResurfaceContext
-): { score: number; reasons: string[] } => {
-  // ← 所有算法演进都改这个函数体
-  // ← 可以新增参数，如全部 echoes（算 IDF）或 warmth
-}
-```
-
-若第 1 级需要 IDF，可把 `selectResurfaced` 改成先建全局词频，再传给 `scoreEcho`：
-
-```ts
-export const selectResurfaced = (echoes, ctx, limit) => {
-  const idf = buildIdfTable(echoes)  // 新增
-  return echoes
-    .filter(...)
-    .map(echo => {
-      const { score, reasons } = scoreEcho(echo, ctx, { idf })  // 传入
-      ...
-    })
-}
-```
-
-管线过滤逻辑一般不动；打分逻辑全在 `scoreEcho`（及其小 helper）。
-
-### 若加 warmth 字段
-
-1. `db/echoes.ts`：`Echo` 类型加 `warmth?: number`，Dexie 升 version 5
-2. `ResurfaceCard` / `sidepanel` 各 handler 里调用 `bumpWarmth(id, delta)`
-3. `scoreEcho` 里读 `echo.warmth`
-
-### 若加 embedding
-
-1. 收藏时（`createEcho`）异步算向量写入
-2. `scoreEcho` 里用余弦相似度替代或补充关键词 overlap
-3. 注意：模型首次加载 ~100MB，算力在浏览器
-
-### 测试思路（无自动化测试时）
-
-1. 手工存 10 条 echo（5 Keep + 5 Collect），故意用不同词但同主题
-2. 打开相关 LLM 页面，看「回声」区浮谁、reasons 是什么
-3. 调权重 / 规则，刷新侧边栏（关再开）看变化
-4. 记录：浮出来的你会不会点？会不会烦？
-
----
-
-## 11. 给 Gemini 的提问模板
-
-你可以把本文档全文贴给 Gemini，然后问例如：
-
-1. **「请根据第 6 节当前实现，帮我在 `scoreEcho` 里实现第 1a 节 TF-IDF，给出完整 TypeScript 代码。」**
-2. **「我存了『定价策略』，现在在聊『怎么收费』，v0 浮不出来。在不引入向量的情况下，还有什么办法？」**
-3. **「请设计 `warmth` 字段和 `bumpWarmth` 函数，并说明在哪些用户动作里调用。」**
-4. **「用 Transformers.js 在 Chrome 扩展里算 embedding 可行吗？最小实现步骤是什么？」**
-5. **「我附上了 10 条测试 echo 和当前页面 title/selection，请模拟 `selectResurfaced` 会浮哪 3 条、为什么。」**
-
----
-
-## 12. 相关文档
+## 10. 相关文档
 
 | 文档 | 内容 |
 | --- | --- |
 | `docs/product-discussion-updated.md` §11 | Collect / Keep / 浮现产品原则 |
-| `products/echo/extension/README.md` | 扩展开发与实现索引 |
+| `extension/README.md` | 扩展开发与实现索引 |
 | `docs/memory-layer-design.md` | 记忆层整体设计（部分表述已被侧边栏方案 supersede） |
 | `docs/memory-theory.md` | 学术背景（Memex、扩散激活、取回线索） |
 
 ---
 
-## 13. 一句话锚点
+## 11. 一句话锚点
 
 > 浮现是排序问题，不是搜索问题。  
 > Keep 求「啊对」，Collect 求「这让我想到」。  
-> 算法旋钮在 `scoreEcho()`；先用 TF-IDF + 行为信号把 v0 打磨准，再考虑向量。
+> 先把过滤做狠，再考虑更强的检索。

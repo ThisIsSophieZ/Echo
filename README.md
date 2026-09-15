@@ -15,7 +15,7 @@ Echo is a local-first Chrome side panel that captures high-value thoughts from C
 | [Benchmark Conclusions](evals/recall-benchmark/data/CONCLUSIONS.md) | Why raw vector and hybrid are not shipped |
 | [Decision Logs](docs/decisions/) | Traceable product and technical trade-offs |
 | [Extension Guide](extension/README.md) | How to run the Chrome extension |
-| [Documentation Index](docs/README.md) | Original research, dogfood records, and engineering history |
+| [Contributing](CONTRIBUTING.md) | How to run the extension and recall benchmark |
 
 ## Sixty-second product flow
 

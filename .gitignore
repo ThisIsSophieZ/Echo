@@ -14,6 +14,7 @@ coverage/
 .idea/
 .vscode/
 
-# Personal interview notes — keep local, never publish
-docs/interview/职业市场研究与岗位策略-2026-08.md
+# Personal notes and local agent contract — keep local, never publish
+private/
+AGENTS.md
 docs/interview/Echo-architecture-interview-guide-bilingual.md
