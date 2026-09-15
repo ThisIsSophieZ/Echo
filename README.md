@@ -2,9 +2,15 @@
 
 **A privacy-first, precision-oriented context retrieval system for AI workflows.**
 
-Echo is a local-first Chrome side panel that captures high-value thoughts from ChatGPT, Claude, Gemini, and Grok, then resurfaces them only when lexical evidence is strong enough. The project is an interview case study in product judgment, retrieval evaluation, explainability, and browser reliability.
+Echo is a Chrome side-panel extension for saving useful context from ChatGPT, Claude, Gemini, and Grok, and resurfacing it when it becomes relevant again.
 
-> Personal dogfood / alpha. This repository demonstrates an end-to-end AI product engineering process, not model training, a cloud multi-tenant service, or production-scale usage.
+The project started from a simple problem: useful ideas get buried across long AI conversations, but aggressively resurfacing old context creates a second problem — interruption.
+
+Dogfooding changed the product direction. Instead of maximizing recall, Echo became precision-first: when the evidence is weak, it stays silent.
+
+This repository documents the product decisions, retrieval experiments, browser-extension implementation, and evaluation process behind that shift.
+
+> **Status:** Personal dogfood / alpha. Echo is a local-first prototype and is not currently maintained as a production multi-user service.
 
 ## Start here
 
@@ -26,11 +32,13 @@ Echo is a local-first Chrome side panel that captures high-value thoughts from C
 
 ## Evidence-backed decisions
 
-- **Prefer precision over recall.** An audit of 16 Probe reports found 256 accepts across 1,493 candidate scans; most accepted candidates lacked phrase evidence. The product gate was tightened instead of adding model complexity.
-- **Do not ship semantic retrieval by default.** On the constructed 55-Echo / 40-query fixture, raw vector improved recall but produced 17.5 false surfaces per 100 queries versus 5.0 for product BM25.
-- **Keep the product local-first.** Echo content stays in IndexedDB; reports and backups leave the browser only through explicit user export.
-- **Treat browser failures as product failures.** Anchor v2 and MV3 write recovery address dynamic LLM DOMs and service-worker suspension.
+## Evidence-backed decisions
 
+- **Prefer precision over recall.** Across 16 dogfood Probe reports, the retrieval pipeline accepted 256 of 1,493 scanned candidates. Manual review showed that many accepted candidates lacked strong phrase-level evidence, so the product gate was tightened rather than adding more model complexity.
+- **Keep semantic retrieval experimental.** On a constructed 55-Echo / 40-query benchmark, raw vector retrieval improved recall but produced 17.5 false surfaces — irrelevant recalls shown to the user — per 100 queries, compared with 5.0 for the product BM25 configuration.
+- **Stay local-first.** Saved Echo content remains in IndexedDB. Reports and backups leave the browser only through explicit user export.
+- **Treat browser reliability as product reliability.** Message-anchor fallbacks and MV3 write recovery handle dynamic LLM DOMs, changing message structures, and service-worker suspension.
+  
 The full rationale and revisit criteria live in the [Decision Logs](docs/decisions/).
 
 ## Repository map
