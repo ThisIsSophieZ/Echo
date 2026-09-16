@@ -54,7 +54,9 @@ The Probe panel can copy or download a request-level JSON trace containing corpu
 
 Offline harness: [`evals/recall-benchmark/`](../../evals/recall-benchmark/)
 
-Same labeled set (55 fixture Echoes, 40 annotated queries) compared:
+### Public reproducible recall benchmark
+
+The same labeled set (55 fixture Echoes, 40 annotated queries) compared:
 
 | Strategy | P@3 | R@3 | False surfaces /100 | Abstention accuracy |
 | --- | ---: | ---: | ---: | ---: |
@@ -64,15 +66,32 @@ Same labeled set (55 fixture Echoes, 40 annotated queries) compared:
 
 Full tables: [`evals/recall-benchmark/data/CONCLUSIONS.md`](../../evals/recall-benchmark/data/CONCLUSIONS.md)
 
-The fixture is constructed from dogfood-realistic product themes. It is useful for reproducible comparison, but it is not presented as private-user or production evidence. A desensitized real dogfood set is the next evaluation upgrade.
+The fixture is constructed from dogfood-realistic product themes. It makes strategy behavior and failure cases publicly inspectable without publishing private conversations.
+
+### Real dogfood holdout
+
+A later time-sliced evaluation used 21 held-out queries over 91 unique Echoes from a real dogfood window. Raw private text remains unpublished, while the labeling method, aggregate results, and limitations are documented in [`HOLDOUT-CONCLUSIONS.md`](../../evals/recall-benchmark/data/HOLDOUT-CONCLUSIONS.md).
+
+| Strategy | P@3 | R@3 | False surfaces /100 | Abstention accuracy |
+| --- | ---: | ---: | ---: | ---: |
+| Product BM25 | 27.0% | 34.9% | 47.6 | 0% |
+| Raw vector | 30.2% | 46.4% | 38.1 | 0% |
+| Existing hybrid | 27.0% | 42.9% | 42.9 | 0% |
+| Guarded hybrid | **42.9%** | 29.0% | **0.0** | **100%** |
+
+The guarded rule was selected on a separate Dev window before the first Holdout run. It promoted semantic retrieval from a broad idea to a focused browser-feasibility candidate while keeping the production path unchanged.
+
+### Grounded-generation holdout
+
+The isolated [`echo-rag-evaluation`](../../experiments/echo-rag-evaluation/) lab tested whether broader lexical candidates could support cited answers without weakening Echo's quiet product recall gate. On one frozen 14-question public Holdout, Candidate BM25 RAG improved correct answer-or-abstain behavior from **3/14 to 14/14**. Human review found all 16 generated claims grounded in their cited records, with 90.9% average required-evidence citation coverage. Full results and the frozen boundary are recorded in [`HOLDOUT-RESULT.md`](../../experiments/echo-rag-evaluation/HOLDOUT-RESULT.md).
 
 ## 6. Results / decision
 
-**Vector and hybrid are not shipped into the extension mainline.**
+**Raw vector and the existing broad hybrid are not shipped into the extension mainline. Guarded hybrid advances to browser-feasibility work, and grounded generation remains an isolated evaluation path.**
 
-Vector helps paraphrases but destroys quietness. Hybrid is quieter than raw vector yet still worse than BM25 on false surfaces in this fixture. Echo optimizes for low interruption; absolute cosine is not confidence when scores crowd.
+The public benchmark showed that raw semantic recall can recover paraphrases while creating too many interruptions. The real dogfood holdout showed that a selective agreement-and-score-spread rule can recover precision, but it does not yet establish browser cost, broader-user generalization, or a reason to replace a working local product path. The RAG holdout demonstrates grounded answer generation as a separate engineering capability without turning every contextual recall into an LLM call.
 
-That “no” is the deliverable: a measured abstain from shipping, not a missing feature.
+The resulting roadmap is evidence-led: reject broad semantic surfacing, prototype the guarded candidate narrowly, and keep generation outside the user-facing loop until it earns a product role.
 
 ## 7. Trade-offs we keep defending
 
@@ -94,14 +113,14 @@ Decision records, including evidence and revisit criteria, are indexed in [`docs
 
 ## 9. Next steps
 
-1. Replace fixture corpus with desensitized personal export when safe
-2. Re-run hybrid only if false-surface rate and abstention beat BM25
+1. Measure guarded-hybrid model size, cold start, warm latency, and browser memory outside the extension UI
+2. Confirm the guarded rule on a newly collected holdout before changing product behavior
 3. Add only the minimum feedback outcomes: `useful`, `not_relevant`, and `wrong_time`
-4. Add a compact privacy and threat-model note
+4. Add a compact screenshot or GIF walkthrough for reviewers who do not install the extension
 
 ## 10. Verification snapshot
 
-On 2026-08-04, the extension passed **10 test files / 52 tests** and completed a production build. Historical development logs keep their original per-stage test counts rather than rewriting earlier snapshots.
+On 2026-09-16, the extension passed **10 test files / 55 tests**, TypeScript typecheck, and a production build. The isolated RAG Lab passed **9 focused tests** and typecheck. Historical development logs keep their original per-stage test counts rather than rewriting earlier snapshots.
 
 ## 11. How AI collaboration was used
 

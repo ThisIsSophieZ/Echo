@@ -14,6 +14,7 @@ The current product is a personal Chrome side panel. Its core loop does not requ
 - The extension already provides the full capture, search, recall, and source-return loop using Dexie / IndexedDB.
 - Chrome MV3 lifecycle failures are handled locally through a small `chrome.storage.local` pending-write queue.
 - Backup and recall-trace exports are explicit user actions rather than background uploads.
+- The [privacy and threat model](../privacy-threat-model.md) records the local data flow, Chrome permission rationale, mitigations, and residual risks.
 - The product boundary repeatedly rejects cloud infrastructure that does not solve a validated user problem. See the [product boundary](../product-boundary.md) and [development log](../../extension/DEVELOPMENT.md).
 
 ## Decision

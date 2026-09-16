@@ -9,6 +9,7 @@
 | [prd.md](./prd.md) | 产品需求 |
 | [product-boundary.md](./product-boundary.md) | 产品边界 |
 | [roadmap.md](./roadmap.md) | 路线图 |
+| [privacy-threat-model.md](./privacy-threat-model.md) | 本地数据流、浏览器权限与威胁模型 |
 | [mvp-user-flows.md](./mvp-user-flows.md) | MVP 用户流 |
 | [mvp-risks.md](./mvp-risks.md) | MVP 风险 |
 | [memory-layer-design.md](./memory-layer-design.md) | Memory Layer 设计 |

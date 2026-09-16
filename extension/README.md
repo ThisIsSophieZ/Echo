@@ -13,8 +13,9 @@ Echo Sidebar is a lightweight Chrome Side Panel for capturing and recalling thou
 ## Verification
 
 ```bash
+npm ci
 npm test
-npx tsc --noEmit
+npm run typecheck
 npm run build
 ```
 
