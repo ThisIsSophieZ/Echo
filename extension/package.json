@@ -15,7 +15,6 @@
     "@plasmohq/messaging": "^0.7.2",
     "dexie": "^4.0.11",
     "lucide-react": "^1.21.0",
-    "plasmo": "^0.90.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
@@ -26,6 +25,7 @@
     "@types/react-dom": "^18.3.5",
     "autoprefixer": "^10.4.20",
     "happy-dom": "^20.10.6",
+    "plasmo": "^0.90.5",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.7.2",
